@@ -41,6 +41,8 @@ project(rocksdb
   VERSION ${rocksdb_VERSION}
   LANGUAGES CXX C ASM)
 
+SET(CMAKE_VERBOSE_MAKEFILE on)
+
 if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif()
@@ -160,6 +162,13 @@ if(WIN32 AND MSVC)
   else()
     set(RUNTIME_LIBRARY "MT")
   endif()
+endif()
+
+if(CMAKE_USE_OLD_GDB)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -gdwarf-3")
+    message(STATUS "CMAKE_USE_OLD_GDB : Enabled")
+elseif(NOT CMAKE_USE_OLD_GDB)
+    message(STATUS "CMAKE_USE_OLD_GDB : Disabled")
 endif()
 
 set(BUILD_VERSION_CC ${CMAKE_BINARY_DIR}/build_version.cc)
