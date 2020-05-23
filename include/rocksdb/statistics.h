@@ -340,7 +340,10 @@ enum Tickers : uint32_t {
   BLOCK_CACHE_COMPRESSION_DICT_ADD,
   BLOCK_CACHE_COMPRESSION_DICT_BYTES_INSERT,
   BLOCK_CACHE_COMPRESSION_DICT_BYTES_EVICT,
-  TICKER_ENUM_MAX
+
+  TICKER_MUDB_MIN = 1000,
+
+  TICKER_ENUM_MAX = 10000
 };
 
 // The order of items listed in  Tickers should be the same as
@@ -430,7 +433,9 @@ enum Histograms : uint32_t {
   FLUSH_TIME,
   SST_BATCH_SIZE,
 
-  HISTOGRAM_ENUM_MAX,
+  HISTOGRAM_MUDB_MIN = 1000,
+
+  HISTOGRAM_ENUM_MAX = 10000,
 };
 
 extern const std::vector<std::pair<Histograms, std::string>> HistogramsNameMap;
