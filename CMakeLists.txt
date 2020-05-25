@@ -821,6 +821,12 @@ if(WIN32)
   endif()
 endif()
 
+file(GLOB MBLOB_SOURCES mblobdb/*.cc)
+file(GLOB MBLOB_TEST_SOURCES mblobdb/*test.cc)
+list(REMOVE_ITEM MBLOB_SOURCES ${MBLOB_TEST_SOURCES})
+
+add_library(mblobdb STATIC ${MBLOB_SOURCES})
+
 option(WITH_JNI "build with JNI" OFF)
 if(WITH_JNI OR JNI)
   message(STATUS "JNI library is enabled")
@@ -893,11 +899,38 @@ if(NOT WIN32 OR ROCKSDB_INSTALL_ON_WINDOWS)
   )
 endif()
 
+if (WITH_TESTS OR WITH_MBLOB_TESTS)
+  set(TESTUTIL_SOURCE
+      db/db_test_util.cc
+      monitoring/thread_status_updater_debug.cc
+      table/mock_table.cc
+      test_util/fault_injection_test_env.cc
+      utilities/cassandra/test_utils.cc
+  )
+
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+  set(TESTUTILLIB testutillib${ARTIFACT_SUFFIX})
+  add_library(${TESTUTILLIB} STATIC ${TESTUTIL_SOURCE})
+  target_link_libraries(${TESTUTILLIB} ${LIBS})
+  if(MSVC)
+    set_target_properties(${TESTUTILLIB} PROPERTIES COMPILE_FLAGS "/Fd${CMAKE_CFG_INTDIR}/testutillib${ARTIFACT_SUFFIX}.pdb")
+  endif()
+  set_target_properties(${TESTUTILLIB}
+        PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD_RELEASE 1
+        EXCLUDE_FROM_DEFAULT_BUILD_MINRELEASE 1
+        EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO 1
+        )
+
+  enable_testing()
+endif()
+
 option(WITH_TESTS "build with tests" ON)
 # For test libraries, utilities, and exes that are build iff WITH_TESTS=ON and
 # in Debug mode. Add test only code that is not #ifdefed for Release here.
 if(WITH_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_subdirectory(third-party/gtest-1.8.1/fused-src/gtest)
+  if(NOT TARGET gtest)
+    add_subdirectory(third-party/gtest-1.8.1/fused-src/gtest)
+  endif()
   set(TESTS
         cache/cache_test.cc
         cache/lru_cache_test.cc
@@ -1051,27 +1084,6 @@ if(WITH_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND TESTS third-party/folly/folly/synchronization/test/DistributedMutexTest.cpp)
   endif()
 
-  set(TESTUTIL_SOURCE
-      db/db_test_util.cc
-      monitoring/thread_status_updater_debug.cc
-      table/mock_table.cc
-      test_util/fault_injection_test_env.cc
-      utilities/cassandra/test_utils.cc
-  )
-  enable_testing()
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
-  set(TESTUTILLIB testutillib${ARTIFACT_SUFFIX})
-  add_library(${TESTUTILLIB} STATIC ${TESTUTIL_SOURCE})
-  target_link_libraries(${TESTUTILLIB} ${LIBS})
-  if(MSVC)
-    set_target_properties(${TESTUTILLIB} PROPERTIES COMPILE_FLAGS "/Fd${CMAKE_CFG_INTDIR}/testutillib${ARTIFACT_SUFFIX}.pdb")
-  endif()
-  set_target_properties(${TESTUTILLIB}
-        PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD_RELEASE 1
-        EXCLUDE_FROM_DEFAULT_BUILD_MINRELEASE 1
-        EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO 1
-        )
-
   set(TEST_EXES ${TESTS})
   foreach(sourcefile ${TEST_EXES})
       get_filename_component(exename ${sourcefile} NAME_WE)
@@ -1107,6 +1119,40 @@ if(WITH_TESTS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
       add_test(NAME ${exename} COMMAND ${exename}${ARTIFACT_SUFFIX})
       add_dependencies(check ${exename}${ARTIFACT_SUFFIX})
   endforeach(sourcefile ${C_TEST_EXES})
+endif()
+
+option(WITH_MBLOB_TESTS "build with mblob tests" ON)
+if (WITH_MBLOB_TESTS AND (NOT CMAKE_BUILD_TYPE STREQUAL "Release"))
+  if(NOT TARGET gtest)
+    add_subdirectory(third-party/gtest-1.8.1/fused-src/gtest)
+  endif()
+  set(MBLOB_TESTS
+        blob_file_iterator_test
+        blob_file_size_collector_test
+        blob_file_test
+        blob_format_test
+        blob_gc_job_test
+        blob_gc_picker_test
+        gc_stats_test
+        table_builder_test
+        thread_safety_test
+        titan_db_test
+        titan_options_test
+        util_test
+        version_test)
+  set(MBLOB_TEST_LIBS
+        mblobdb
+        testutillib${ARTIFACT_SUFFIX}
+        gtest
+        rt
+        pthread)
+
+  foreach(test ${MBLOB_TESTS})
+    add_executable(${test} mblobdb/${test}.cc $<TARGET_OBJECTS:testharness>)
+
+    target_link_libraries(${test} ${MBLOB_TEST_LIBS})
+    add_test(${test} ${test})
+  endforeach(test ${MBLOB_TESTS})
 endif()
 
 option(WITH_BENCHMARK_TOOLS "build with benchmarks" ON)
