@@ -68,6 +68,9 @@ class StatisticsImpl : public Statistics {
   virtual bool getTickerMap(std::map<std::string, uint64_t>*) const override;
   virtual bool HistEnabledForType(uint32_t type) const override;
 
+  virtual bool isAreaStatEnabled() { return areaStatFlag; }
+  virtual void setAreaStatFlag(bool flag) { areaStatFlag = flag; }
+
  private:
   // If non-nullptr, forwards updates to the object pointed to by `stats_`.
   std::shared_ptr<Statistics> stats_;
@@ -104,6 +107,8 @@ class StatisticsImpl : public Statistics {
   std::unique_ptr<HistogramImpl> getHistogramImplLocked(
       uint32_t histogram_type) const;
   void setTickerCountLocked(uint32_t ticker_type, uint64_t count);
+
+  bool areaStatFlag;
 };
 
 // Utility functions

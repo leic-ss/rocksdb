@@ -885,6 +885,8 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
     input->SeekToFirst();
   }
 
+  bool enable_area_stat = db_options_.statistics ? db_options_.statistics->isAreaStatEnabled() : false;
+
   Status status;
   sub_compact->c_iter.reset(new CompactionIterator(
       input.get(), cfd->user_comparator(), &merge, versions_->LastSequence(),
@@ -892,7 +894,7 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
       snapshot_checker_, env_, ShouldReportDetailedTime(env_, stats_), false,
       &range_del_agg, sub_compact->compaction, compaction_filter,
       shutting_down_, preserve_deletes_seqnum_, manual_compaction_paused_,
-      db_options_.info_log));
+      db_options_.info_log, enable_area_stat));
   auto c_iter = sub_compact->c_iter.get();
   c_iter->SeekToFirst();
   if (c_iter->Valid() && sub_compact->compaction->output_level() != 0) {
@@ -919,6 +921,16 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
     if (c_iter_stats.num_input_records % kRecordStatsEvery ==
         kRecordStatsEvery - 1) {
       RecordDroppedKeys(c_iter_stats, &sub_compact->compaction_job_stats);
+      if (enable_area_stat && stats_) {
+          for (uint32_t i = 0; i<1025; i++) {
+              stats_->area_stats[i].num_record_drop_user += c_iter_stats.area_stats[i].num_record_drop_user;
+              stats_->area_stats[i].num_record_drop_hidden += c_iter_stats.area_stats[i].num_record_drop_hidden;
+              stats_->area_stats[i].num_record_drop_obsolete += c_iter_stats.area_stats[i].num_record_drop_obsolete;
+              stats_->area_stats[i].num_record_drop_range_del += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
+              stats_->area_stats[i].num_range_del_drop_obsolete += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
+              stats_->area_stats[i].num_optimized_del_drop_obsolete += c_iter_stats.area_stats[i].num_optimized_del_drop_obsolete;
+          }
+      }
       c_iter->ResetRecordCounts();
       RecordCompactionIOStats();
     }
@@ -1007,6 +1019,17 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
   RecordTick(stats_, FILTER_OPERATION_TOTAL_TIME,
              c_iter_stats.total_filter_time);
   RecordDroppedKeys(c_iter_stats, &sub_compact->compaction_job_stats);
+  if (enable_area_stat && stats_) {
+      for (uint32_t i = 0; i<1025; i++) {
+          stats_->area_stats[i].num_record_drop_user += c_iter_stats.area_stats[i].num_record_drop_user;
+          stats_->area_stats[i].num_record_drop_hidden += c_iter_stats.area_stats[i].num_record_drop_hidden;
+          stats_->area_stats[i].num_record_drop_obsolete += c_iter_stats.area_stats[i].num_record_drop_obsolete;
+          stats_->area_stats[i].num_record_drop_range_del += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
+          stats_->area_stats[i].num_range_del_drop_obsolete += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
+          stats_->area_stats[i].num_optimized_del_drop_obsolete += c_iter_stats.area_stats[i].num_optimized_del_drop_obsolete;
+      }
+  }
+
   RecordCompactionIOStats();
 
   if (status.ok() && cfd->IsDropped()) {

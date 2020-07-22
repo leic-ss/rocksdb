@@ -5,6 +5,19 @@
 
 #pragma once
 
+#define MAX_AREA_SLOT 1025
+
+struct CompactionAreaStats {
+  int64_t num_record_drop_user = 0;
+
+  int64_t num_record_drop_hidden = 0;
+  int64_t num_record_drop_obsolete = 0;
+  int64_t num_record_drop_range_del = 0;
+  int64_t num_range_del_drop_obsolete = 0;
+  // Deletions obsoleted before bottom level due to file gap optimization.
+  int64_t num_optimized_del_drop_obsolete = 0;
+};
+
 struct CompactionIterationStats {
   // Compaction statistics
 
@@ -32,4 +45,7 @@ struct CompactionIterationStats {
   // Single-Delete diagnostics for exceptional situations
   uint64_t num_single_del_fallthru = 0;
   uint64_t num_single_del_mismatch = 0;
+
+  CompactionAreaStats area_stats[MAX_AREA_SLOT];
 };
+

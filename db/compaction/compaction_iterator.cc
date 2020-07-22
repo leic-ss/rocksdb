@@ -41,7 +41,8 @@ CompactionIterator::CompactionIterator(
     const std::atomic<bool>* shutting_down,
     const SequenceNumber preserve_deletes_seqnum,
     const std::atomic<bool>* manual_compaction_paused,
-    const std::shared_ptr<Logger> info_log)
+    const std::shared_ptr<Logger> info_log,
+    bool enable_area_stat)
     : CompactionIterator(
           input, cmp, merge_helper, last_sequence, snapshots,
           earliest_write_conflict_snapshot, snapshot_checker, env,
@@ -49,7 +50,7 @@ CompactionIterator::CompactionIterator(
           std::unique_ptr<CompactionProxy>(
               compaction ? new CompactionProxy(compaction) : nullptr),
           compaction_filter, shutting_down, preserve_deletes_seqnum,
-          manual_compaction_paused, info_log) {}
+          manual_compaction_paused, info_log, enable_area_stat) {}
 
 CompactionIterator::CompactionIterator(
     InternalIterator* input, const Comparator* cmp, MergeHelper* merge_helper,
@@ -63,7 +64,8 @@ CompactionIterator::CompactionIterator(
     const std::atomic<bool>* shutting_down,
     const SequenceNumber preserve_deletes_seqnum,
     const std::atomic<bool>* manual_compaction_paused,
-    const std::shared_ptr<Logger> info_log)
+    const std::shared_ptr<Logger> info_log,
+    bool enable_area_stat)
     : input_(input),
       cmp_(cmp),
       merge_helper_(merge_helper),
@@ -83,7 +85,8 @@ CompactionIterator::CompactionIterator(
       current_user_key_snapshot_(0),
       merge_out_iter_(merge_helper_),
       current_key_committed_(false),
-      info_log_(info_log) {
+      info_log_(info_log),
+      enable_area_stat_(enable_area_stat) {
   assert(compaction_filter_ == nullptr || compaction_ != nullptr);
   assert(snapshots_ != nullptr);
   bottommost_level_ =
@@ -125,6 +128,8 @@ void CompactionIterator::ResetRecordCounts() {
   iter_stats_.num_record_drop_range_del = 0;
   iter_stats_.num_range_del_drop_obsolete = 0;
   iter_stats_.num_optimized_del_drop_obsolete = 0;
+
+  memset(iter_stats_.area_stats, 0, sizeof(iter_stats_.area_stats));
 }
 
 void CompactionIterator::SeekToFirst() {
@@ -509,6 +514,17 @@ void CompactionIterator::NextFromInput() {
       }
 
       ++iter_stats_.num_record_drop_hidden;  // (A)
+
+      if (ikey_.user_key.size() > 2) {
+          const char* buf = ikey_.user_key.data();
+          int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
+          if (area >= 0 && area < 1025) {
+              iter_stats_.area_stats[area].num_record_drop_hidden++;
+          } else {
+              ROCKS_LOG_ERROR(info_log_, "key: %.*s decode area failed!", (int32_t)ikey_.user_key.size(), ikey_.user_key.data());
+          }
+      }
+
       input_->Next();
     } else if (compaction_ != nullptr && ikey_.type == kTypeDeletion &&
                IN_EARLIEST_SNAPSHOT(ikey_.sequence) &&
@@ -538,6 +554,19 @@ void CompactionIterator::NextFromInput() {
       if (!bottommost_level_) {
         ++iter_stats_.num_optimized_del_drop_obsolete;
       }
+
+      if (ikey_.user_key.size() > 2) {
+          const char* buf = ikey_.user_key.data();
+          int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
+          if (area >= 0 && area < 1025) {
+              if (!bottommost_level_) {
+                  iter_stats_.area_stats[area].num_record_drop_hidden++;
+              }
+          } else {
+              ROCKS_LOG_ERROR(info_log_, "key: %.*s decode area failed!", (int32_t)ikey_.user_key.size(), ikey_.user_key.data());
+          }
+      }
+
       input_->Next();
     } else if ((ikey_.type == kTypeDeletion) && bottommost_level_ &&
                ikeyNotNeededForIncrementalSnapshot()) {

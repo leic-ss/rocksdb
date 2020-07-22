@@ -234,7 +234,8 @@ std::shared_ptr<Statistics> CreateDBStatistics() {
 }
 
 StatisticsImpl::StatisticsImpl(std::shared_ptr<Statistics> stats)
-    : stats_(std::move(stats)) {}
+    : stats_(std::move(stats))
+    , areaStatFlag(false) {}
 
 StatisticsImpl::~StatisticsImpl() {}
 

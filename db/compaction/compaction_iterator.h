@@ -71,7 +71,8 @@ class CompactionIterator {
       const std::atomic<bool>* shutting_down = nullptr,
       const SequenceNumber preserve_deletes_seqnum = 0,
       const std::atomic<bool>* manual_compaction_paused = nullptr,
-      const std::shared_ptr<Logger> info_log = nullptr);
+      const std::shared_ptr<Logger> info_log = nullptr,
+      bool enable_area_stat = false);
 
   // Constructor with custom CompactionProxy, used for tests.
   CompactionIterator(
@@ -86,7 +87,8 @@ class CompactionIterator {
       const std::atomic<bool>* shutting_down = nullptr,
       const SequenceNumber preserve_deletes_seqnum = 0,
       const std::atomic<bool>* manual_compaction_paused = nullptr,
-      const std::shared_ptr<Logger> info_log = nullptr);
+      const std::shared_ptr<Logger> info_log = nullptr,
+      bool enable_area_stat = false);
 
   ~CompactionIterator();
 
@@ -226,6 +228,7 @@ class CompactionIterator {
   bool current_key_committed_;
   std::shared_ptr<Logger> info_log_;
 
+  bool enable_area_stat_;
   bool IsShuttingDown() {
     // This is a best-effort facility, so memory_order_relaxed is sufficient.
     return shutting_down_ && shutting_down_->load(std::memory_order_relaxed);
