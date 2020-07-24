@@ -140,6 +140,7 @@ Status BuildTable(
           sample_for_compression, compression_opts_for_flush, level,
           false /* skip_filters */, creation_time, oldest_key_time,
           0 /*target_file_size*/, file_creation_time);
+      builder->setFileNumber(meta->fd.GetNumber());
     }
 
     MergeHelper merge(env, internal_comparator.user_comparator(),
@@ -189,6 +190,7 @@ Status BuildTable(
       s = builder->Finish();
     }
 
+    fprintf(stderr, "GetTableProperties start\n");
     if (s.ok() && !empty) {
       uint64_t file_size = builder->FileSize();
       meta->fd.file_size = file_size;
@@ -199,7 +201,9 @@ Status BuildTable(
         *table_properties = tp;
       }
     }
+    fprintf(stderr, "delete builder start\n");
     delete builder;
+    fprintf(stderr, "delete builder end\n");
 
     // Finish and check for file errors
     if (s.ok() && !empty) {

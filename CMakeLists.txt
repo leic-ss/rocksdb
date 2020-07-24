@@ -603,6 +603,7 @@ set(SOURCES
         table/block_based/block_based_table_builder.cc
         table/block_based/block_based_table_factory.cc
         table/block_based/block_based_table_reader.cc
+        table/block_based/fifo_optmz.cc
         table/block_based/block_builder.cc
         table/block_based/block_prefix_index.cc
         table/block_based/data_block_hash_index.cc

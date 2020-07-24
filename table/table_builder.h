@@ -157,6 +157,8 @@ class TableBuilder {
   // be further compacted.
   virtual bool NeedCompact() const { return false; }
 
+  virtual void setFileNumber(uint64_t file_number) { }
+
   // Returns table properties
   virtual TableProperties GetTableProperties() const = 0;
 };

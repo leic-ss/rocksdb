@@ -1188,6 +1188,7 @@ bool BlockBasedTableBuilder::NeedCompact() const {
 
 TableProperties BlockBasedTableBuilder::GetTableProperties() const {
   TableProperties ret = rep_->props;
+  //fprintf(stderr, "111 %s\n", ret.ToString().c_str());
   for (const auto& collector : rep_->table_properties_collectors) {
     for (const auto& prop : collector->GetReadableProperties()) {
       ret.readable_properties.insert(prop);

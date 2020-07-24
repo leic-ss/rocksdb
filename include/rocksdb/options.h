@@ -1294,6 +1294,8 @@ struct ReadOptions {
   // and the API is subject to change.
   const Slice* timestamp;
 
+  uint64_t specified_file_number;
+
   ReadOptions();
   ReadOptions(bool cksum, bool cache);
 };

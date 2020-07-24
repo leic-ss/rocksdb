@@ -584,6 +584,8 @@ class TableFactory {
 
   // Return is delete range supported
   virtual bool IsDeleteRangeSupported() const { return false; }
+
+  virtual std::shared_ptr<Cache> GetCache() { return nullptr; }
 };
 
 #ifndef ROCKSDB_LITE

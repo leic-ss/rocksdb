@@ -1790,6 +1790,10 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
   FdWithKeyRange* f = fp.GetNextFile();
 
   while (f != nullptr) {
+    if (read_options.specified_file_number != 0 && read_options.specified_file_number != f->fd.GetNumber()) {
+        continue;
+    }
+
     if (*max_covering_tombstone_seq > 0) {
       // The remaining files we look at will only contain covered keys, so we
       // stop here.
@@ -1857,6 +1861,7 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
             "rocksdb::blob_db::BlobDB instead.");
         return;
     }
+    if (read_options.specified_file_number != 0) break;
     f = fp.GetNextFile();
   }
   if (db_statistics_ != nullptr) {
