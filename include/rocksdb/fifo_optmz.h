@@ -13,7 +13,7 @@ namespace rocksdb {
 
 class FifoOptmzTableFactory : public TableFactory {
  public:
-  FifoOptmzTableFactory(const ColumnFamilyOptions& cf_options, LRUCacheOptions& cache_opts)
+  FifoOptmzTableFactory(const ColumnFamilyOptions& cf_options, const LRUCacheOptions& cache_opts)
       : base_factory_(cf_options.table_factory) {
         cache = NewLRUCache(cache_opts);
         assert(cache);

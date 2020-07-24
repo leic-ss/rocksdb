@@ -1791,6 +1791,7 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
 
   while (f != nullptr) {
     if (read_options.specified_file_number != 0 && read_options.specified_file_number != f->fd.GetNumber()) {
+        f = fp.GetNextFile();
         continue;
     }
 
