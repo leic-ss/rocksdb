@@ -1748,6 +1748,49 @@ Version::Version(ColumnFamilyData* column_family_data, VersionSet* vset,
       mutable_cf_options_(mutable_cf_options),
       version_number_(version_number) {}
 
+static int32_t compare_raw_user_key(const Slice& ikey1, const Slice& ikey2) {
+    Slice user_key1(ikey1.data() + 5, ikey1.size() - 5);
+    Slice user_key2(ikey2.data() + 5, ikey2.size() - 5);
+
+    return user_key1.compare(user_key2);
+}
+
+static int32_t lower_bound2(const LevelFilesBrief& file_level, const Slice& ikey) {
+    uint32_t size = (uint32_t)file_level.num_files;
+    if ( size == 0 ) return -1;
+    if (compare_raw_user_key(ikey, file_level.files[0].largest_key) > 0) return 0;
+    if (compare_raw_user_key(ikey, file_level.files[size - 1].largest_key) <= 0) return size - 1;
+
+    int32_t first = 0, last = size-1;
+    int32_t middle, pos = 0;
+
+    while (first < last) {
+        middle = (first + last) / 2;
+        int32_t ret = compare_raw_user_key(ikey, file_level.files[middle].largest_key);
+
+        // fprintf(stderr, "lower_bound2 111 %.*s %.*s %d <%d %d %d %d>\n", (int)ikey.size() - 13, ikey.data() + 5, 
+        //         (int)file_level.files[middle].largest_key.size() - 13, file_level.files[middle].largest_key.data() + 5, ret,
+        //         first, middle, last, pos);
+
+        if ( ret < 0 ) {
+            pos = middle;
+            first = middle + 1;
+        } else if( ret > 0 ) {
+            last = middle - 1;
+            pos = last;
+        } else {
+            pos = middle;
+            break;
+        }
+
+        // fprintf(stderr, "lower_bound2 222 %.*s %.*s %d <%d %d %d %d>\n", (int)ikey.size() - 13, ikey.data() + 5, 
+        //         (int)file_level.files[middle].largest_key.size() - 13, file_level.files[middle].largest_key.data() + 5, ret,
+        //         first, middle, last, pos);
+    }
+
+    return pos;
+}
+
 void Version::Get(const ReadOptions& read_options, const LookupKey& k,
                   PinnableSlice* value, Status* status,
                   MergeContext* merge_context,
@@ -1788,6 +1831,33 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
       storage_info_.num_non_empty_levels_, &storage_info_.file_indexer_,
       user_comparator(), internal_comparator());
   FdWithKeyRange* f = fp.GetNextFile();
+
+  FdWithKeyRange* f2 = nullptr;
+  if ( (read_options.specified_file_number == 0) && read_options.is_L0_file_sorted ) {
+      if (storage_info_.level_files_brief_.size() == 0) {
+          *status = Status::NoSpace();
+          return ;
+      }
+
+      int32_t file_idx = lower_bound2(storage_info_.level_files_brief_[0], ikey);
+      if (file_idx < 0 || file_idx == (int)storage_info_.level_files_brief_[0].num_files) {
+          *status = Status::NotFound();
+          return ;
+      }
+
+      f = &storage_info_.level_files_brief_[0].files[file_idx];
+      if (file_idx < (int)storage_info_.level_files_brief_[0].num_files - 1) {
+          f2 = &storage_info_.level_files_brief_[0].files[file_idx+1];
+      }
+
+      // for (int i = 0; i < (int)storage_info_.level_files_brief_[0].num_files; ++i)
+      // {
+      //     fprintf(stderr, "<%d %lu %.*s %.*s>\n", file_idx, storage_info_.level_files_brief_[0].num_files,
+      //             (int)storage_info_.level_files_brief_[0].files[i].smallest_key.size() - 13, storage_info_.level_files_brief_[0].files[i].smallest_key.data() + 5,
+      //             (int)storage_info_.level_files_brief_[0].files[i].largest_key.size() - 13, storage_info_.level_files_brief_[0].files[i].largest_key.data() + 5);
+      // }
+      // fprintf(stderr, "\n");
+  }
 
   while (f != nullptr) {
     if (read_options.specified_file_number != 0 && read_options.specified_file_number != f->fd.GetNumber()) {
@@ -1861,6 +1931,14 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
             "Encounter unexpected blob index. Please open DB with "
             "rocksdb::blob_db::BlobDB instead.");
         return;
+    }
+    if ( (read_options.specified_file_number == 0) && read_options.is_L0_file_sorted) {
+      if (f2 != nullptr && f != f2) {
+          f = f2;
+          continue;
+      } else {
+          break;
+      }
     }
     if (read_options.specified_file_number != 0) break;
     f = fp.GetNextFile();

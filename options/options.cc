@@ -598,7 +598,8 @@ ReadOptions::ReadOptions()
       ignore_range_deletions(false),
       iter_start_seqnum(0),
       timestamp(nullptr),
-      specified_file_number(0) {}
+      specified_file_number(0),
+      is_L0_file_sorted(false) {}
 
 ReadOptions::ReadOptions(bool cksum, bool cache)
     : snapshot(nullptr),
@@ -618,6 +619,7 @@ ReadOptions::ReadOptions(bool cksum, bool cache)
       ignore_range_deletions(false),
       iter_start_seqnum(0),
       timestamp(nullptr),
-      specified_file_number(0) {}
+      specified_file_number(0),
+      is_L0_file_sorted(false) {}
 
 }  // namespace rocksdb

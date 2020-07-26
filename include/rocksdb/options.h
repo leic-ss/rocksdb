@@ -1296,6 +1296,8 @@ struct ReadOptions {
 
   uint64_t specified_file_number;
 
+  bool is_L0_file_sorted;
+
   ReadOptions();
   ReadOptions(bool cksum, bool cache);
 };
