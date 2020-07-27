@@ -11,7 +11,7 @@ namespace rocksdb {
 
 class FifoOptmzTableBuilder : public TableBuilder {
  public:
-  FifoOptmzTableBuilder(std::unique_ptr<TableBuilder> base_builder, std::shared_ptr<Cache> cache_)
+  FifoOptmzTableBuilder(std::unique_ptr<TableBuilder> base_builder, std::shared_ptr<InvertedCache> cache_)
       : cache(cache_)
       , base_builder_(std::move(base_builder)) { }
 
@@ -37,7 +37,7 @@ private:
     bool ok() const { return status().ok(); }
     Status status_;
     uint64_t fileNumber;
-    std::shared_ptr<Cache> cache;
+    std::shared_ptr<InvertedCache> cache;
     std::unique_ptr<TableBuilder> base_builder_;
 };
 

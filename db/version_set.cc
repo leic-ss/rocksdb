@@ -1748,6 +1748,7 @@ Version::Version(ColumnFamilyData* column_family_data, VersionSet* vset,
       mutable_cf_options_(mutable_cf_options),
       version_number_(version_number) {}
 
+/*
 static int32_t compare_raw_user_key(const Slice& ikey1, const Slice& ikey2) {
     Slice user_key1(ikey1.data() + 5, ikey1.size() - 5);
     Slice user_key2(ikey2.data() + 5, ikey2.size() - 5);
@@ -1790,6 +1791,7 @@ static int32_t lower_bound2(const LevelFilesBrief& file_level, const Slice& ikey
 
     return pos;
 }
+*/
 
 void Version::Get(const ReadOptions& read_options, const LookupKey& k,
                   PinnableSlice* value, Status* status,
@@ -1799,6 +1801,11 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
                   bool* is_blob, bool do_merge) {
   Slice ikey = k.internal_key();
   Slice user_key = k.user_key();
+
+  if (read_options.specified_file_number == 0) {
+      *status = Status::NotFound();
+      return ;
+  }
 
   assert(status->ok() || status->IsMergeInProgress());
 
@@ -1832,6 +1839,7 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
       user_comparator(), internal_comparator());
   FdWithKeyRange* f = fp.GetNextFile();
 
+  /*
   FdWithKeyRange* f2 = nullptr;
   if ( (read_options.specified_file_number == 0) && read_options.is_L0_file_sorted ) {
       if (storage_info_.level_files_brief_.size() == 0) {
@@ -1858,6 +1866,7 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
       // }
       // fprintf(stderr, "\n");
   }
+  */
 
   while (f != nullptr) {
     if (read_options.specified_file_number != 0 && read_options.specified_file_number != f->fd.GetNumber()) {
@@ -1932,14 +1941,14 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
             "rocksdb::blob_db::BlobDB instead.");
         return;
     }
-    if ( (read_options.specified_file_number == 0) && read_options.is_L0_file_sorted) {
+    /*if ( (read_options.specified_file_number == 0) && read_options.is_L0_file_sorted) {
       if (f2 != nullptr && f != f2) {
           f = f2;
           continue;
       } else {
           break;
       }
-    }
+    }*/
     if (read_options.specified_file_number != 0) break;
     f = fp.GetNextFile();
   }

@@ -275,4 +275,16 @@ class Cache {
   std::shared_ptr<MemoryAllocator> memory_allocator_;
 };
 
+class InvertedCache {
+public:
+    InvertedCache() {}
+    virtual ~InvertedCache() {}
+
+    virtual Status initialize(const std::string& path, uint32_t ttl) { return Status::NotSupported(); }
+
+    virtual Status insert(const Slice& key, const Slice& value) { return Status::NotSupported(); }
+
+    virtual Status read(const Slice& key, std::string* value) { return Status::NotSupported(); }
+};
+
 }  // namespace rocksdb

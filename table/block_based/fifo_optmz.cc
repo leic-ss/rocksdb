@@ -1,12 +1,11 @@
 #include "rocksdb/fifo_optmz.h"
 #include "fifo_optmz_inc.h"
 #include "db/dbformat.h"
+#include "util/coding.h"
 
 #include <stdint.h>
 
 namespace rocksdb {
-
-static void* EncodeValue(uintptr_t v) { return reinterpret_cast<void*>(v); }
 
 void FifoOptmzTableBuilder::Add(const Slice& key, const Slice& value) {
     if (!ok()) return;
@@ -20,10 +19,11 @@ void FifoOptmzTableBuilder::Add(const Slice& key, const Slice& value) {
     //fprintf(stderr, "%.*s %lu\n", (int)ikey.user_key.size(), ikey.user_key.data(), fileNumber);
     base_builder_->Add(key, value);
 
-    if (!cache) {
-        return ;
+    if (cache) {
+        std::string result;
+        PutFixed64(&result, fileNumber);
+        cache->insert(ikey.user_key, result);
     }
-    cache->Insert(ikey.user_key, EncodeValue(fileNumber), ikey.user_key.size() + sizeof(uint64_t), nullptr);
 }
 
 Status FifoOptmzTableBuilder::status() const {
@@ -79,6 +79,11 @@ TableBuilder* FifoOptmzTableFactory::NewTableBuilder(
 
 std::string FifoOptmzTableFactory::GetPrintableTableOptions() const {
   return base_factory_->GetPrintableTableOptions();
+}
+
+uint64_t FifoOptmzTableFactory::DecodeFixed64(const std::string& value)
+{
+    return DecodeFixed64(value.data());
 }
 
 }  // namespace rocksdb
