@@ -52,7 +52,7 @@ class FifoOptmzTableFactory : public TableFactory {
   }
 
 public:
-  static uint64_t DecodeFixed64(const std::string& data);
+  static uint64_t ivtDecodeFixed64(const std::string& data);
 
  private:
   std::shared_ptr<TableFactory> base_factory_;

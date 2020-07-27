@@ -81,7 +81,7 @@ std::string FifoOptmzTableFactory::GetPrintableTableOptions() const {
   return base_factory_->GetPrintableTableOptions();
 }
 
-uint64_t FifoOptmzTableFactory::DecodeFixed64(const std::string& value)
+uint64_t FifoOptmzTableFactory::ivtDecodeFixed64(const std::string& value)
 {
     return DecodeFixed64(value.data());
 }
