@@ -285,6 +285,8 @@ public:
     virtual Status insert(const Slice& key, const Slice& value) { return Status::NotSupported(); }
 
     virtual Status read(const Slice& key, std::string* value) { return Status::NotSupported(); }
+
+    virtual std::string stat(const std::string& type) { return std::string(); }
 };
 
 }  // namespace rocksdb
