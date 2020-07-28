@@ -1294,6 +1294,8 @@ struct ReadOptions {
   // and the API is subject to change.
   const Slice* timestamp;
 
+  bool read_specified_file_number;
+
   uint64_t specified_file_number;
 
   bool is_L0_file_sorted;

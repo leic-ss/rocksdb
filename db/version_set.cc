@@ -1802,7 +1802,7 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
   Slice ikey = k.internal_key();
   Slice user_key = k.user_key();
 
-  if (read_options.specified_file_number == 0) {
+  if (read_options.read_specified_file_number && read_options.specified_file_number == 0) {
       *status = Status::NotFound();
       return ;
   }
