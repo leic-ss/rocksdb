@@ -896,7 +896,7 @@ bool InternalStats::HandleBlockCacheStat(Cache** block_cache) {
   assert(block_cache != nullptr);
   auto* table_factory = cfd_->ioptions()->table_factory;
   assert(table_factory != nullptr);
-  if (BlockBasedTableFactory::kName != table_factory->Name()) {
+  if (BlockBasedTableFactory::kName != table_factory->Name() && strcmp(table_factory->Name(), "FifoOptmzTable") != 0) {
     return false;
   }
   auto* table_options =
