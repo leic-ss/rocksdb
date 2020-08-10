@@ -9,8 +9,9 @@ deps_prefix=${rocksdb_home}/rocksdb_bin
 DEPS=/apps/mdsenv/deps
 
 rm -rf $DEPS/include/rocksdb
-rm -rf $DEPS/lib64/librocksdb.* $DEPS/lib64/cmake
+rm -rf $DEPS/lib64/librocksdb.* $DEPS/lib64/cmake $DEPS/lib64/libmblobdb.a
 
 cp -rf ${deps_prefix}/include/rocksdb $DEPS/include
+cp -rf ${deps_prefix}/include/mblobdb $DEPS/include
 cp -af ${deps_prefix}/lib64/* $DEPS/lib64
 
