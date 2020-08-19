@@ -193,6 +193,8 @@ class EditCollector {
       }
 
       storage->ComputeGCScore();
+      // ROCKS_LOG_INFO(storage->db_options().info_log,
+      //                "Apply and blob gc info: %s", storage->scoreString().c_str());
       return Status::OK();
     }
 

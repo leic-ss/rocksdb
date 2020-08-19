@@ -180,6 +180,28 @@ void BlobStorage::GetObsoleteFiles(std::vector<std::string>* obsolete_files,
   }
 }
 
+std::string BlobStorage::scoreString(uint32_t limit)
+{
+    std::string score_str;
+    MutexLock l(&mutex_);
+
+    uint32_t num = 0;
+    for (auto& sc : gc_score_) {
+        if (++num > limit) {
+            break;
+        }
+
+        if (score_str.empty()) {
+            score_str.append("cf id: ").append(std::to_string(cf_id_));
+        }
+
+        score_str.append(" ");
+        score_str.append("<").append(std::to_string(sc.file_number)).append(", ").append(std::to_string(sc.score)).append(">");
+    }
+
+    return std::move(score_str);
+}
+
 void BlobStorage::ComputeGCScore() {
   // TODO: no need to recompute all everytime
   MutexLock l(&mutex_);

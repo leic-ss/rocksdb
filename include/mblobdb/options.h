@@ -73,6 +73,8 @@ struct ImmutableTitanCFOptions;
 struct MutableTitanCFOptions;
 
 struct TitanCFOptions : public ColumnFamilyOptions {
+  bool skip = false;
+
   // The smallest value to store in blob files. Value smaller than
   // this threshold will be inlined in base DB.
   //

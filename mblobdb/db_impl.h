@@ -160,6 +160,8 @@ class TitanDBImpl : public TitanDB {
     return blob_file_set_->GetBlobStorage(column_family->GetID()).lock();
   }
 
+  std::string blob_gc_info(uint32_t limit = 100);
+
  private:
   class FileManager;
   friend class FileManager;

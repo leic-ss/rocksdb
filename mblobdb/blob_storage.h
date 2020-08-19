@@ -91,6 +91,8 @@ class BlobStorage {
     return destroyed_ && obsolete_files_.empty();
   }
 
+  std::string scoreString(uint32_t limit = 30);
+
   // Computes GC score.
   void ComputeGCScore();
 

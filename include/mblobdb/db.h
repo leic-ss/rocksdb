@@ -131,6 +131,8 @@ class TitanDB : public StackableDB {
   using rocksdb::StackableDB::GetOptions;
   Options GetOptions(ColumnFamilyHandle* column_family) const override = 0;
 
+  virtual std::string blob_gc_info(uint32_t limit = 100) { return std::string("not implemented!"); }
+
   virtual TitanOptions GetTitanOptions(
       ColumnFamilyHandle* column_family) const = 0;
   virtual TitanOptions GetTitanOptions() const {

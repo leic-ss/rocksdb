@@ -51,6 +51,16 @@ EntryType GetEntryType(ValueType value_type) {
   }
 }
 
+void ValueMeta::encodeToBuf(const char* buf)
+{
+
+}
+
+void ValueMeta::decodeFromBuf(const char* buf)
+{
+
+}
+
 bool ParseFullKey(const Slice& internal_key, FullKey* fkey) {
   ParsedInternalKey ikey;
   if (!ParseInternalKey(internal_key, &ikey)) {

@@ -46,6 +46,14 @@ struct FullKey {
   }
 };
 
+struct ValueMeta {
+  uint32_t edate;
+
+  void encodeToBuf(const char* buf);
+  void decodeFromBuf(const char* buf);
+  uint32_t size() { return sizeof(uint32_t); }
+};
+
 // Parse slice representing internal key to FullKey
 // Parsed FullKey is valid for as long as the memory pointed to by
 // internal_key is alive.

@@ -166,6 +166,31 @@ void TitanDBImpl::StartBackgroundTasks() {
   }
 }
 
+std::string TitanDBImpl::blob_gc_info(uint32_t limit)
+{
+    std::string gc_info;
+    gc_info.append("bg_gc_scheduled_: ").append(std::to_string(bg_gc_scheduled_)).append("\n");
+    gc_info.append("bg_gc_running_: ").append(std::to_string(bg_gc_running_)).append("\n");
+    gc_info.append("unscheduled_gc_: ").append(std::to_string(unscheduled_gc_)).append("\n");
+    gc_info.append("drop_cf_requests_: ").append(std::to_string(drop_cf_requests_)).append("\n");
+    gc_info.append("limit: ").append(std::to_string(limit)).append("\n");
+
+    gc_info.append("\n");
+    MutexLock l(&mutex_);
+    for (auto& cf : cf_info_) {
+        auto bs = blob_file_set_->GetBlobStorage(cf.first).lock();
+        if( !bs ) {
+            gc_info.append("column_family: ").append(std::to_string(cf.first)).append(" not found!").append("\n\n");
+            continue;
+        }
+
+        gc_info.append("column_family: ").append(std::to_string(cf.first)).append("\n");
+        gc_info.append(bs->scoreString(limit)).append("\n");
+    }
+
+    return std::move(gc_info);
+}
+
 Status TitanDBImpl::ValidateOptions(
     const TitanDBOptions& options,
     const std::vector<TitanCFDescriptor>& column_families) const {
@@ -258,6 +283,8 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
   std::vector<std::shared_ptr<TitanTableFactory>> titan_table_factories;
   for (auto& desc : descs) {
     base_descs.emplace_back(desc.name, desc.options);
+    if (desc.options.skip) continue;
+
     ColumnFamilyOptions& cf_opts = base_descs.back().options;
     // Disable compactions before everything is initialized.
     cf_opts.disable_auto_compactions = true;
@@ -906,6 +933,8 @@ Status TitanDBImpl::DeleteFilesInRanges(ColumnFamilyHandle* column_family,
     blob_file_set_->LogAndApply(edit);
   } else {
     bs->ComputeGCScore();
+    // ROCKS_LOG_INFO(db_options_.info_log,
+    //                "DeleteFilesInRanges and blob gc info: %s", bs->scoreString().c_str());
 
     AddToGCQueue(cf_id);
     MaybeScheduleGC();
@@ -1280,6 +1309,7 @@ void TitanDBImpl::OnCompactionCompleted(
                          compaction_job_info.job_id, file_number);
           assert(false);
         }
+
         SubStats(stats_.get(), compaction_job_info.cf_id,
                  TitanInternalStats::LIVE_BLOB_SIZE, delta);
         if (cf_options.level_merge) {
@@ -1315,6 +1345,9 @@ void TitanDBImpl::OnCompactionCompleted(
       MarkFileIfNeedMerge(to_merge_candidates, cf_options.max_sorted_runs);
     } else {
       bs->ComputeGCScore();
+      ROCKS_LOG_INFO(db_options_.info_log,
+                         "OnCompactionCompleted[%d] cf_id[%u] blob gc info: %s",
+                         compaction_job_info.job_id, compaction_job_info.cf_id, bs->scoreString().c_str());
       AddToGCQueue(compaction_job_info.cf_id);
       MaybeScheduleGC();
     }
