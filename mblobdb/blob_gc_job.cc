@@ -48,6 +48,7 @@ class BlobGCJob::GarbageCollectionWriteCallback : public WriteCallback {
 
     if (s.ok()) {
       BlobIndex other_blob_index;
+      index_entry.remove_prefix(ValueMeta::size());
       s = other_blob_index.DecodeFrom(&index_entry);
       if (!s.ok()) {
         return s;
@@ -244,6 +245,10 @@ Status BlobGCJob::DoRunGC() {
     blob_file_builder->Add(blob_record, &new_blob_index.blob_handle);
     std::string index_entry;
 
+    if (blob_record.value.size() >= ValueMeta::size()) {
+      index_entry.append(blob_record.value.data(), ValueMeta::size());
+    }
+
     if (!gc_merge_rewrite_) {
       new_blob_index.EncodeToBase(&index_entry);
       // Store WriteBatch for rewriting new Key-Index pairs to LSM
@@ -336,6 +341,7 @@ Status BlobGCJob::DiscardEntry(const Slice& key, const BlobIndex& blob_index,
   }
 
   BlobIndex other_blob_index;
+  index_entry.remove_prefix(ValueMeta::size());
   s = other_blob_index.DecodeFrom(&index_entry);
   if (!s.ok()) {
     return s;

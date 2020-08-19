@@ -51,14 +51,49 @@ EntryType GetEntryType(ValueType value_type) {
   }
 }
 
-void ValueMeta::encodeToBuf(const char* buf)
+void ValueMeta::encodeToBuf(uint8_t* buf)
 {
+    buf[10] = (uint8_t)flag;
 
+    buf[9] = (uint8_t)version;
+    buf[8] = (uint8_t)version >> 8;
+
+    buf[7] = (uint8_t)mdate;
+    buf[6] = (uint8_t)(mdate >> 8);
+    buf[5] = (uint8_t)(mdate >> 16);
+    buf[4] = (uint8_t)(mdate >> 24);
+
+    buf[3] = (uint8_t)edate;
+    buf[2] = (uint8_t)(edate >> 8);
+    buf[1] = (uint8_t)(edate >> 16);
+    buf[0] = (uint8_t)(edate >> 24);
+    return ;
 }
 
-void ValueMeta::decodeFromBuf(const char* buf)
+void ValueMeta::decodeFromBuf(uint8_t* buf)
 {
+    edate = buf[0];
+    edate <<= 8;
+    edate |= buf[1];
+    edate <<= 8;
+    edate |= buf[2];
+    edate <<= 8;
+    edate |= buf[3];
 
+    mdate = buf[4];
+    mdate <<= 8;
+    mdate |= buf[5];
+    mdate <<= 8;
+    mdate |= buf[6];
+    mdate <<= 8;
+    mdate |= buf[7];
+
+    version = buf[8];
+    version <<= 8;
+    version |= buf[9];
+
+    flag = buf[10];
+    return ;
 }
 
 bool ParseFullKey(const Slice& internal_key, FullKey* fkey) {

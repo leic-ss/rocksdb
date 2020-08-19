@@ -112,13 +112,14 @@ bool operator==(const BlobHandle& lhs, const BlobHandle& rhs) {
 void BlobIndex::EncodeTo(std::string* dst) const {
   dst->push_back(kBlobRecord);
   PutVarint64(dst, file_number);
+  PutVarint32(dst, edate);
   blob_handle.EncodeTo(dst);
 }
 
 Status BlobIndex::DecodeFrom(Slice* src) {
   unsigned char type;
   if (!GetChar(src, &type) || type != kBlobRecord ||
-      !GetVarint64(src, &file_number)) {
+      !GetVarint64(src, &file_number) || !GetVarint32(src, &edate)) {
     return Status::Corruption("BlobIndex");
   }
   Status s = blob_handle.DecodeFrom(src);

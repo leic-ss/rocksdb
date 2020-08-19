@@ -53,7 +53,7 @@ Status BlobFileSizeCollector::AddUserKey(const Slice& /* key */,
   Status s;
   MergeBlobIndex index;
 
-  Slice copy = value;
+  Slice copy = Slice(value.data() + ValueMeta::size(), value.size() - ValueMeta::size());
   if (type == kEntryMerge) {
     s = index.DecodeFrom(const_cast<Slice*>(&copy));
   } else {

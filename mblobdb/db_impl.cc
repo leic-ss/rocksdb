@@ -283,7 +283,6 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
   std::vector<std::shared_ptr<TitanTableFactory>> titan_table_factories;
   for (auto& desc : descs) {
     base_descs.emplace_back(desc.name, desc.options);
-    if (desc.options.skip) continue;
 
     ColumnFamilyOptions& cf_opts = base_descs.back().options;
     // Disable compactions before everything is initialized.
@@ -640,6 +639,7 @@ Status TitanDBImpl::GetImpl(const ReadOptions& options,
 
   value = get_impl_options.value;
   BlobIndex index;
+  value->remove_prefix(ValueMeta::size());
   s = index.DecodeFrom(value);
   assert(s.ok());
   if (!s.ok()) return s;

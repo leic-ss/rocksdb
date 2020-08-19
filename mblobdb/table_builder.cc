@@ -26,7 +26,7 @@ void TitanTableBuilder::Add(const Slice& key, const Slice& value) {
   if (ikey.type == kTypeBlobIndex &&
       cf_options_.blob_run_mode == TitanBlobRunMode::kFallback) {
     // we ingest value from blob file
-    Slice copy = value;
+    Slice copy = Slice(value.data() + ValueMeta::size(), value.size() - ValueMeta::size());
     BlobIndex index;
     status_ = index.DecodeFrom(&copy);
     if (!ok()) {
@@ -70,7 +70,7 @@ void TitanTableBuilder::Add(const Slice& key, const Slice& value) {
              cf_options_.blob_run_mode == TitanBlobRunMode::kNormal) {
     // we merge value to new blob file
     BlobIndex index;
-    Slice copy = value;
+    Slice copy = Slice(value.data() + ValueMeta::size(), value.size() - ValueMeta::size());
     status_ = index.DecodeFrom(&copy);
     if (!ok()) {
       return;
@@ -136,7 +136,12 @@ void TitanTableBuilder::AddBlob(const Slice& key, const Slice& value,
   BlobRecord record;
   record.key = key;
   record.value = value;
+
   index.file_number = blob_handle_->GetNumber();
+  if (value.size() >= ValueMeta::size()) {
+    index_value->append(value.data(), ValueMeta::size());
+  }
+
   blob_builder_->Add(record, &index.blob_handle);
   RecordTick(statistics(stats_), TITAN_BLOB_FILE_BYTES_WRITTEN,
              index.blob_handle.size);

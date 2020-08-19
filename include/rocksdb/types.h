@@ -47,11 +47,14 @@ struct FullKey {
 };
 
 struct ValueMeta {
-  uint32_t edate;
+  uint8_t  flag{0};
+  uint16_t version{0};
+  uint32_t mdate{0};
+  uint32_t edate{0};
 
-  void encodeToBuf(const char* buf);
-  void decodeFromBuf(const char* buf);
-  uint32_t size() { return sizeof(uint32_t); }
+  void encodeToBuf(uint8_t* buf);
+  void decodeFromBuf(uint8_t* buf);
+  static uint32_t size() { return sizeof(uint8_t) + sizeof(uint16_t) + 2*sizeof(uint32_t); }
 };
 
 // Parse slice representing internal key to FullKey

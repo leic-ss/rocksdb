@@ -138,6 +138,7 @@ struct BlobIndex {
     kBlobRecord = 1,
   };
   uint64_t file_number{0};
+  uint32_t edate{0};
   BlobHandle blob_handle;
 
   virtual ~BlobIndex() {}
