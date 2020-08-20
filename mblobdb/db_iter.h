@@ -132,11 +132,12 @@ class TitanDBIterator : public Iterator {
     assert(iter_->status().ok());
 
     BlobIndex index;
-    status_ = DecodeInto(iter_->value(), &index);
+    Slice dv = Slice(iter_->value().data() + ValueMeta::size(), iter_->value().size() - ValueMeta::size());
+    status_ = DecodeInto(dv, &index);
     if (!status_.ok()) {
       ROCKS_LOG_ERROR(info_log_,
                       "Titan iterator: failed to decode blob index %s: %s",
-                      iter_->value().ToString(true /*hex*/).c_str(),
+                      dv.ToString(true /*hex*/).c_str(),
                       status_.ToString().c_str());
       return;
     }
