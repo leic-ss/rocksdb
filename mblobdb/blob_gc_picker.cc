@@ -11,8 +11,9 @@ namespace mblobdb {
 
 BasicBlobGCPicker::BasicBlobGCPicker(TitanDBOptions db_options,
                                      TitanCFOptions cf_options,
-                                     TitanStats* stats)
-    : db_options_(db_options), cf_options_(cf_options), stats_(stats) {}
+                                     TitanStats* stats,
+                                     uint64_t scan_speed)
+    : db_options_(db_options), cf_options_(cf_options), stats_(stats), max_scan_speed(scan_speed) {}
 
 BasicBlobGCPicker::~BasicBlobGCPicker() {}
 
@@ -27,7 +28,7 @@ std::unique_ptr<BlobGC> BasicBlobGCPicker::PickBlobGC(
   bool maybe_continue_next_time = false;
   uint64_t next_gc_size = 0;
   for (auto& gc_score : blob_storage->gc_score()) {
-    if (gc_score.score < cf_options_.blob_file_discardable_ratio) {
+    if (max_scan_speed == 0 && gc_score.score < cf_options_.blob_file_discardable_ratio) {
       break;
     }
     auto blob_file = blob_storage->FindFile(gc_score.file_number).lock();
@@ -79,7 +80,7 @@ std::unique_ptr<BlobGC> BasicBlobGCPicker::PickBlobGC(
   }
 
   return std::unique_ptr<BlobGC>(new BlobGC(
-      std::move(blob_files), std::move(cf_options_), maybe_continue_next_time));
+      std::move(blob_files), std::move(cf_options_), maybe_continue_next_time, max_scan_speed));
 }
 
 bool BasicBlobGCPicker::CheckBlobFile(BlobFileMeta* blob_file) const {

@@ -29,7 +29,7 @@ class BlobGCPicker {
 
 class BasicBlobGCPicker final : public BlobGCPicker {
  public:
-  BasicBlobGCPicker(TitanDBOptions, TitanCFOptions, TitanStats*);
+  BasicBlobGCPicker(TitanDBOptions, TitanCFOptions, TitanStats*, uint64_t scan_speed=0);
   ~BasicBlobGCPicker();
 
   std::unique_ptr<BlobGC> PickBlobGC(BlobStorage* blob_storage) override;
@@ -38,6 +38,7 @@ class BasicBlobGCPicker final : public BlobGCPicker {
   TitanDBOptions db_options_;
   TitanCFOptions cf_options_;
   TitanStats* stats_;
+  uint64_t max_scan_speed;
 
   // Check if blob_file needs to gc, return true means we need pick this
   // file for gc

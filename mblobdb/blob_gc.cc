@@ -4,10 +4,11 @@ namespace rocksdb {
 namespace mblobdb {
 
 BlobGC::BlobGC(std::vector<BlobFileMeta*>&& blob_files,
-               TitanCFOptions&& _titan_cf_options, bool need_trigger_next)
+               TitanCFOptions&& _titan_cf_options, bool need_trigger_next, uint64_t scan_speed)
     : inputs_(std::move(blob_files)),
       titan_cf_options_(std::move(_titan_cf_options)),
-      trigger_next_(need_trigger_next) {
+      trigger_next_(need_trigger_next),
+      max_scan_speed(scan_speed) {
   MarkFilesBeingGC();
 }
 

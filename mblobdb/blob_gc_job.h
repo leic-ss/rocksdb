@@ -15,6 +15,43 @@
 namespace rocksdb {
 namespace mblobdb {
 
+class CSpeedLimit
+{
+public:
+    CSpeedLimit(uint64_t rate, int32_t smoothTimer=200) 
+            : m_rate(rate), m_smoothTimer(smoothTimer)
+            , m_count(0), m_curTimerIndex(0)
+    {
+        resetRate(rate);
+        env = Env::Default();
+    }
+
+    void limitrate();
+    void resetRate(uint64_t rate)
+    {
+        m_rate = rate;
+        if( 0 == m_rate ) {
+          m_rate = 1000;
+        }
+        m_ratePmsec = ((float)m_rate)/1000;
+        m_count = 0;
+    }
+
+    uint64_t getRate() const
+    {
+        return m_rate;
+    }
+
+private:
+    uint64_t m_rate;
+    uint64_t m_smoothTimer;
+
+    float m_ratePmsec;
+    uint64_t m_count;
+    uint64_t m_curTimerIndex;
+    Env* env;
+};
+
 class BlobGCJob {
  public:
   BlobGCJob(BlobGC *blob_gc, DB *db, port::Mutex *mutex,

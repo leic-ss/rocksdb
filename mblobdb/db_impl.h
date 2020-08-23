@@ -162,6 +162,8 @@ class TitanDBImpl : public TitanDB {
 
   std::string blob_gc_info(uint32_t limit = 100);
 
+  std::string setMaxFullScanSpeed(uint64_t max_scan_speed);
+
  private:
   class FileManager;
   friend class FileManager;
@@ -316,6 +318,8 @@ class TitanDBImpl : public TitanDB {
   int unscheduled_gc_ = 0;
   // REQUIRE: mutex_ held.
   int drop_cf_requests_ = 0;
+
+  uint64_t max_full_scan_speed = 0;
 
   std::atomic_bool shuting_down_{false};
 };

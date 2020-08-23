@@ -78,6 +78,23 @@ class BlobGCJob::GarbageCollectionWriteCallback : public WriteCallback {
   uint64_t read_bytes_;
 };
 
+void CSpeedLimit::limitrate()
+{
+    uint64_t curmsec = (env->NowMicros() / 1000);
+    if( curmsec/m_smoothTimer != m_curTimerIndex ) {        
+        m_curTimerIndex = curmsec/m_smoothTimer;
+        m_count = 1;
+        return ;
+    }
+
+    ++m_count;
+    uint64_t walkmsec = curmsec%m_smoothTimer;
+    uint64_t shouldmsec = (uint64_t)(m_count/m_ratePmsec);
+    if( shouldmsec > walkmsec ) {
+        env->SleepForMicroseconds( 1000*(shouldmsec - walkmsec) );
+    }
+}
+
 BlobGCJob::BlobGCJob(BlobGC* blob_gc, DB* db, port::Mutex* mutex,
                      const TitanDBOptions& titan_db_options,
                      bool gc_merge_rewrite, Env* env,
@@ -137,9 +154,10 @@ Status BlobGCJob::Run() {
     }
     tmp.append(std::to_string(f->file_number()));
   }
-  ROCKS_LOG_BUFFER(log_buffer_, "[%s] Titan GC candidates[%s]",
+  ROCKS_LOG_BUFFER(log_buffer_, "[%s] Titan GC candidates[%s] limit_speed[%lu]",
                    blob_gc_->column_family_handle()->GetName().c_str(),
-                   tmp.c_str());
+                   tmp.c_str(),
+                   blob_gc_->GetMaxScanSpeed());
   return DoRunGC();
 }
 
@@ -163,6 +181,15 @@ Status BlobGCJob::DoRunGC() {
   std::unique_ptr<BlobFileBuilder> blob_file_builder;
 
   auto* cfh = blob_gc_->column_family_handle();
+  uint64_t limit_speed = blob_gc_->GetMaxScanSpeed();
+  CSpeedLimit* limiter = nullptr;
+  if ( limit_speed > 0 ) limiter = new CSpeedLimit(limit_speed);
+  Env* env = Env::Default();
+  int64_t cur_sec = 0;
+  s = env->GetCurrentTime(&cur_sec);
+  if (!s.ok()) {
+      ROCKS_LOG_BUFFER(log_buffer_, "GetCurrentTime failed! status[%s]", s.ToString().c_str());
+  }
 
   //  uint64_t drop_entry_num = 0;
   //  uint64_t drop_entry_size = 0;
@@ -180,6 +207,9 @@ Status BlobGCJob::DoRunGC() {
       s = Status::ShutdownInProgress();
       break;
     }
+
+    if (limiter) limiter->limitrate();
+
     BlobIndex blob_index = gc_iter->GetBlobIndex();
     // count read bytes for blob record of gc candidate files
     metrics_.gc_bytes_read += blob_index.blob_handle.size;
@@ -205,6 +235,13 @@ Status BlobGCJob::DoRunGC() {
     }
 
     last_key_valid = true;
+
+    const Slice& value = gc_iter->value();
+    if (value.size() >= ValueMeta::size()) {
+        ValueMeta meta;
+        meta.decodeFromBuf((uint8_t*)value.data());
+        if (cur_sec > 0 && meta.edate < cur_sec) continue;
+    }
 
     // Rewrite entry to new blob file
     if ((!blob_file_handle && !blob_file_builder) ||
@@ -236,12 +273,15 @@ Status BlobGCJob::DoRunGC() {
     blob_record.value = gc_iter->value();
     // count written bytes for new blob record,
     // blob index's size is counted in `RewriteValidKeyToLSM`
-    metrics_.gc_bytes_written += blob_record.size();
+    uint64_t rec_size = blob_record.size();
+    metrics_.gc_bytes_written += rec_size;
+    file_size += rec_size;
 
     MergeBlobIndex new_blob_index;
     new_blob_index.file_number = blob_file_handle->GetNumber();
     new_blob_index.source_file_number = blob_index.file_number;
     new_blob_index.source_file_offset = blob_index.blob_handle.offset;
+
     blob_file_builder->Add(blob_record, &new_blob_index.blob_handle);
     std::string index_entry;
 
@@ -272,6 +312,8 @@ Status BlobGCJob::DoRunGC() {
       break;
     }
   }
+
+  if (limiter) delete limiter;
 
   if (gc_iter->status().ok() && s.ok()) {
     if (blob_file_builder && blob_file_handle) {

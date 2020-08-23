@@ -13,7 +13,7 @@ namespace mblobdb {
 class BlobGC {
  public:
   BlobGC(std::vector<BlobFileMeta*>&& blob_files,
-         TitanCFOptions&& _titan_cf_options, bool need_trigger_next);
+         TitanCFOptions&& _titan_cf_options, bool need_trigger_next, uint64_t scan_speed=0);
 
   // No copying allowed
   BlobGC(const BlobGC&) = delete;
@@ -31,6 +31,8 @@ class BlobGC {
 
   ColumnFamilyData* GetColumnFamilyData();
 
+  uint64_t GetMaxScanSpeed() { return max_scan_speed; }
+
   void MarkFilesBeingGC();
 
   void AddOutputFile(BlobFileMeta*);
@@ -46,6 +48,7 @@ class BlobGC {
   ColumnFamilyHandle* cfh_{nullptr};
   // Whether need to trigger gc after this gc or not
   const bool trigger_next_;
+  uint64_t max_scan_speed;
 };
 
 struct GCScore {

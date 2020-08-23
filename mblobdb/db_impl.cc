@@ -173,6 +173,7 @@ std::string TitanDBImpl::blob_gc_info(uint32_t limit)
     gc_info.append("bg_gc_running_: ").append(std::to_string(bg_gc_running_)).append("\n");
     gc_info.append("unscheduled_gc_: ").append(std::to_string(unscheduled_gc_)).append("\n");
     gc_info.append("drop_cf_requests_: ").append(std::to_string(drop_cf_requests_)).append("\n");
+    gc_info.append("max_full_scan_speed: ").append(std::to_string(max_full_scan_speed)).append("\n");
     gc_info.append("limit: ").append(std::to_string(limit)).append("\n");
 
     gc_info.append("\n");
@@ -184,11 +185,25 @@ std::string TitanDBImpl::blob_gc_info(uint32_t limit)
             continue;
         }
 
+        auto& cfinfo = cf.second;
         gc_info.append("column_family: ").append(std::to_string(cf.first)).append("\n");
+        gc_info.append("blob_file_discardable_ratio: ").append(std::to_string(cfinfo.immutable_cf_options.blob_file_discardable_ratio)).append("\n");
+        gc_info.append("min_gc_batch_size: ").append(std::to_string(cfinfo.immutable_cf_options.min_gc_batch_size)).append("\n");
+        gc_info.append("max_gc_batch_size: ").append(std::to_string(cfinfo.immutable_cf_options.max_gc_batch_size)).append("\n");
+        gc_info.append("blob_file_target_size: ").append(std::to_string(cfinfo.immutable_cf_options.blob_file_target_size)).append("\n");
+
         gc_info.append(bs->scoreString(limit)).append("\n");
     }
 
     return std::move(gc_info);
+}
+
+std::string TitanDBImpl::setMaxFullScanSpeed(uint64_t max_scan_speed) {
+    std::string str;
+    str.append("set full scan speed ").append(std::to_string(max_full_scan_speed))
+       .append(" => ").append(std::to_string(max_scan_speed)).append(" success!\n");
+    max_full_scan_speed = max_scan_speed;
+    return std::move(str);
 }
 
 Status TitanDBImpl::ValidateOptions(
