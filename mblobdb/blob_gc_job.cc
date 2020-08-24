@@ -275,7 +275,7 @@ Status BlobGCJob::DoRunGC() {
     // blob index's size is counted in `RewriteValidKeyToLSM`
     uint64_t rec_size = blob_record.size();
     metrics_.gc_bytes_written += rec_size;
-    file_size += rec_size;
+    if(limiter) file_size += rec_size;
 
     MergeBlobIndex new_blob_index;
     new_blob_index.file_number = blob_file_handle->GetNumber();
