@@ -395,6 +395,46 @@ void DBImpl::WaitForBackgroundWork() {
   }
 }
 
+Status DBImpl::CompactAuto()
+{
+  InstrumentedMutexLock l(&mutex_);
+
+  if (!versions_) {
+    return Status::NotSupported("Not initialized!");
+  }
+
+  for (auto cfd : *versions_->GetColumnFamilySet()) {
+    SchedulePendingCompaction(cfd);
+  }
+  MaybeScheduleFlushOrCompaction();
+
+  return Status();
+}
+
+Status DBImpl::CompactStatus(std::string& info)
+{
+  info.clear();
+  info.append("unscheduled_flushes_: ").append(std::to_string(unscheduled_flushes_)).append("\n");
+  info.append("unscheduled_compactions_: ").append(std::to_string(unscheduled_compactions_)).append("\n");
+  info.append("bg_bottom_compaction_scheduled_: ").append(std::to_string(bg_bottom_compaction_scheduled_)).append("\n");
+  info.append("bg_compaction_scheduled_: ").append(std::to_string(bg_compaction_scheduled_)).append("\n");
+  info.append("num_running_compactions_: ").append(std::to_string(num_running_compactions_)).append("\n");
+  info.append("bg_flush_scheduled_: ").append(std::to_string(bg_flush_scheduled_)).append("\n");
+  info.append("num_running_flushes_: ").append(std::to_string(num_running_flushes_)).append("\n");
+  info.append("bg_purge_scheduled_: ").append(std::to_string(bg_purge_scheduled_)).append("\n");
+
+  info.append("disable_delete_obsolete_files_: ").append(std::to_string(disable_delete_obsolete_files_)).append("\n");
+  info.append("pending_purge_obsolete_files_: ").append(std::to_string(pending_purge_obsolete_files_)).append("\n");
+  info.append("delete_obsolete_files_last_run_: ").append(std::to_string(delete_obsolete_files_last_run_)).append("\n");
+  info.append("last_stats_dump_time_microsec_: ").append(std::to_string(last_stats_dump_time_microsec_.load())).append("\n");
+
+  info.append("num_running_ingest_file_: ").append(std::to_string(num_running_ingest_file_)).append("\n");
+  info.append("bg_work_paused_: ").append(std::to_string(bg_work_paused_)).append("\n");
+  info.append("bg_compaction_paused_: ").append(std::to_string(bg_compaction_paused_));
+
+  return Status();
+}
+
 // Will lock the mutex_,  will wait for completion if wait is true
 void DBImpl::CancelAllBackgroundWork(bool wait) {
   ROCKS_LOG_INFO(immutable_db_options_.info_log,

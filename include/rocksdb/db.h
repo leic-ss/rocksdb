@@ -983,6 +983,9 @@ class DB {
     return CompactRange(options, DefaultColumnFamily(), begin, end);
   }
 
+  virtual Status CompactAuto() { return Status::NotSupported("Not implemented"); }
+  virtual Status CompactStatus(std::string& info) { return Status::NotSupported("Not implemented!"); }
+
   virtual Status SetOptions(
       ColumnFamilyHandle* /*column_family*/,
       const std::unordered_map<std::string, std::string>& /*new_options*/) {

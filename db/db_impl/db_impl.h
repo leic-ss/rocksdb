@@ -271,6 +271,10 @@ class DBImpl : public DB {
                               ColumnFamilyHandle* column_family,
                               const Slice* begin, const Slice* end) override;
 
+  virtual Status CompactAuto() override;
+
+  virtual Status CompactStatus(std::string& info) override;
+
   using DB::CompactFiles;
   virtual Status CompactFiles(
       const CompactionOptions& compact_options,
