@@ -198,6 +198,18 @@ std::string TitanDBImpl::blob_gc_info(uint32_t limit)
     return std::move(gc_info);
 }
 
+Status TitanDBImpl::CompactAuto()
+{
+  if (db_impl_) return db_impl_->CompactAuto();
+  return Status::NotSupported("Not initialized mblob!");
+}
+
+Status TitanDBImpl::CompactStatus(std::string& info)
+{
+  if (db_impl_) return db_impl_->CompactStatus(info);
+  return Status::NotSupported("Not initialized mblob!");
+}
+
 std::string TitanDBImpl::setMaxFullScanSpeed(uint64_t max_scan_speed) {
     std::string str;
     str.append("set full scan speed ").append(std::to_string(max_full_scan_speed))

@@ -164,6 +164,9 @@ class TitanDBImpl : public TitanDB {
 
   std::string setMaxFullScanSpeed(uint64_t max_scan_speed);
 
+  Status CompactAuto() override;
+  Status CompactStatus(std::string& info) override;
+
  private:
   class FileManager;
   friend class FileManager;

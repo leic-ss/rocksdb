@@ -400,13 +400,24 @@ Status DBImpl::CompactAuto()
   InstrumentedMutexLock l(&mutex_);
 
   if (!versions_) {
-    return Status::NotSupported("Not initialized!");
+    return Status::NotSupported("Not initialized versions!");
   }
 
+  std::string info;
   for (auto cfd : *versions_->GetColumnFamilySet()) {
+    cfd->current()->storage_info()->ComputeCompactionScore(*(cfd->ioptions()), *(cfd->GetLatestMutableCFOptions()));
+
+    if (!info.empty()) info.append(" ");
+    info.append("[").append(cfd->GetName()).append(" ")
+        .append(std::to_string(cfd->queued_for_compaction())).append(" ")
+        .append(std::to_string(cfd->NeedsCompaction())).append("]");
+
     SchedulePendingCompaction(cfd);
   }
   MaybeScheduleFlushOrCompaction();
+
+  ROCKS_LOG_INFO(immutable_db_options_.info_log,
+                 "schedule compaction for column_families: %s success!", info.c_str());
 
   return Status();
 }
