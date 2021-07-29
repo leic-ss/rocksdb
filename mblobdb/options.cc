@@ -13,23 +13,23 @@
 namespace rocksdb {
 namespace mblobdb {
 
-void TitanDBOptions::Dump(Logger* logger) const {
-  ROCKS_LOG_HEADER(logger, "TitanDBOptions.dirname                    : %s",
+void NubaseDBOptions::Dump(Logger* logger) const {
+  ROCKS_LOG_HEADER(logger, "NubaseDBOptions.dirname                    : %s",
                    dirname.c_str());
-  ROCKS_LOG_HEADER(logger, "TitanDBOptions.disable_background_gc      : %d",
+  ROCKS_LOG_HEADER(logger, "NubaseDBOptions.disable_background_gc      : %d",
                    static_cast<int>(disable_background_gc));
   ROCKS_LOG_HEADER(logger,
-                   "TitanDBOptions.max_background_gc          : %" PRIi32,
+                   "NubaseDBOptions.max_background_gc          : %" PRIi32,
                    max_background_gc);
   ROCKS_LOG_HEADER(logger,
-                   "TitanDBOptions.purge_obsolete_files_period_sec: %" PRIu32,
+                   "NubaseDBOptions.purge_obsolete_files_period_sec: %" PRIu32,
                    purge_obsolete_files_period_sec);
   ROCKS_LOG_HEADER(logger,
-                   "TitanDBOptions.titan_stats_dump_period_sec: %" PRIu32,
+                   "NubaseDBOptions.titan_stats_dump_period_sec: %" PRIu32,
                    titan_stats_dump_period_sec);
 }
 
-TitanCFOptions::TitanCFOptions(const ColumnFamilyOptions& cf_opts,
+NubaseCFOptions::NubaseCFOptions(const ColumnFamilyOptions& cf_opts,
                                const ImmutableTitanCFOptions& immutable_opts,
                                const MutableTitanCFOptions& mutable_opts)
     : ColumnFamilyOptions(cf_opts),
@@ -45,9 +45,9 @@ TitanCFOptions::TitanCFOptions(const ColumnFamilyOptions& cf_opts,
       blob_run_mode(mutable_opts.blob_run_mode),
       gc_merge_rewrite(mutable_opts.gc_merge_rewrite) {}
 
-void TitanCFOptions::Dump(Logger* logger) const {
+void NubaseCFOptions::Dump(Logger* logger) const {
   ROCKS_LOG_HEADER(logger,
-                   "TitanCFOptions.min_blob_size                : %" PRIu64,
+                   "NubaseCFOptions.min_blob_size                : %" PRIu64,
                    min_blob_size);
   std::string compression_str = "unknown";
   for (auto& compression_type : compression_type_string_map) {
@@ -56,34 +56,34 @@ void TitanCFOptions::Dump(Logger* logger) const {
       break;
     }
   }
-  ROCKS_LOG_HEADER(logger, "TitanCFOptions.blob_file_compression        : %s",
+  ROCKS_LOG_HEADER(logger, "NubaseCFOptions.blob_file_compression        : %s",
                    compression_str.c_str());
   ROCKS_LOG_HEADER(logger,
-                   "TitanCFOptions.blob_file_target_size        : %" PRIu64,
+                   "NubaseCFOptions.blob_file_target_size        : %" PRIu64,
                    blob_file_target_size);
-  ROCKS_LOG_HEADER(logger, "TitanCFOptions.blob_cache                   : %p",
+  ROCKS_LOG_HEADER(logger, "NubaseCFOptions.blob_cache                   : %p",
                    blob_cache.get());
   if (blob_cache != nullptr) {
     ROCKS_LOG_HEADER(logger, "%s", blob_cache->GetPrintableOptions().c_str());
   }
   ROCKS_LOG_HEADER(logger,
-                   "TitanCFOptions.max_gc_batch_size            : %" PRIu64,
+                   "NubaseCFOptions.max_gc_batch_size            : %" PRIu64,
                    max_gc_batch_size);
   ROCKS_LOG_HEADER(logger,
-                   "TitanCFOptions.min_gc_batch_size            : %" PRIu64,
+                   "NubaseCFOptions.min_gc_batch_size            : %" PRIu64,
                    min_gc_batch_size);
-  ROCKS_LOG_HEADER(logger, "TitanCFOptions.blob_file_discardable_ratio  : %lf",
+  ROCKS_LOG_HEADER(logger, "NubaseCFOptions.blob_file_discardable_ratio  : %lf",
                    blob_file_discardable_ratio);
-  ROCKS_LOG_HEADER(logger, "TitanCFOptions.sample_file_size_ratio       : %lf",
+  ROCKS_LOG_HEADER(logger, "NubaseCFOptions.sample_file_size_ratio       : %lf",
                    sample_file_size_ratio);
   ROCKS_LOG_HEADER(logger,
-                   "TitanCFOptions.merge_small_file_threshold   : %" PRIu64,
+                   "NubaseCFOptions.merge_small_file_threshold   : %" PRIu64,
                    merge_small_file_threshold);
   std::string blob_run_mode_str = "unknown";
   if (blob_run_mode_to_string.count(blob_run_mode) > 0) {
     blob_run_mode_str = blob_run_mode_to_string.at(blob_run_mode);
   }
-  ROCKS_LOG_HEADER(logger, "TitanCFOptions.blob_run_mode                : %s",
+  ROCKS_LOG_HEADER(logger, "NubaseCFOptions.blob_run_mode                : %s",
                    blob_run_mode_str.c_str());
 }
 

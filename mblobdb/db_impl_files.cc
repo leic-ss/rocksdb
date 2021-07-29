@@ -3,7 +3,7 @@
 namespace rocksdb {
 namespace mblobdb {
 
-Status TitanDBImpl::PurgeObsoleteFilesImpl() {
+Status NubaseDBImpl::PurgeObsoleteFilesImpl() {
   Status s;
   std::vector<std::string> candidate_files;
   auto oldest_sequence = GetOldestSnapshotSequence();
@@ -34,12 +34,12 @@ Status TitanDBImpl::PurgeObsoleteFilesImpl() {
   return s;
 }
 
-void TitanDBImpl::PurgeObsoleteFiles() {
+void NubaseDBImpl::PurgeObsoleteFiles() {
   Status s __attribute__((__unused__)) = PurgeObsoleteFilesImpl();
   assert(s.ok());
 }
 
-Status TitanDBImpl::TEST_PurgeObsoleteFiles() {
+Status NubaseDBImpl::TEST_PurgeObsoleteFiles() {
   return PurgeObsoleteFilesImpl();
 }
 

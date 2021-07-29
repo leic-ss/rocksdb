@@ -55,7 +55,7 @@ private:
 class BlobGCJob {
  public:
   BlobGCJob(BlobGC *blob_gc, DB *db, port::Mutex *mutex,
-            const TitanDBOptions &titan_db_options, bool gc_merge_rewrite,
+            const NubaseDBOptions &titan_db_options, bool gc_merge_rewrite,
             Env *env, const EnvOptions &env_options,
             BlobFileManager *blob_file_manager, BlobFileSet *blob_file_set,
             LogBuffer *log_buffer, std::atomic_bool *shuting_down,
@@ -84,7 +84,7 @@ class BlobGCJob {
   DB *base_db_;
   DBImpl *base_db_impl_;
   port::Mutex *mutex_;
-  TitanDBOptions db_options_;
+  NubaseDBOptions db_options_;
   const bool gc_merge_rewrite_;
   Env *env_;
   EnvOptions env_options_;

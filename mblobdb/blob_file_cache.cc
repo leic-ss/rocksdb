@@ -14,8 +14,8 @@ Slice EncodeFileNumber(const uint64_t* number) {
 
 }  // namespace
 
-BlobFileCache::BlobFileCache(const TitanDBOptions& db_options,
-                             const TitanCFOptions& cf_options,
+BlobFileCache::BlobFileCache(const NubaseDBOptions& db_options,
+                             const NubaseCFOptions& cf_options,
                              std::shared_ptr<Cache> cache, TitanStats* stats)
     : env_(db_options.env),
       env_options_(db_options),

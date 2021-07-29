@@ -19,7 +19,7 @@ const uint64_t kTargetBlobFileSize = 4096;
 
 class FileManager : public BlobFileManager {
  public:
-  FileManager(const TitanDBOptions& db_options, BlobFileSet* blob_file_set)
+  FileManager(const NubaseDBOptions& db_options, BlobFileSet* blob_file_set)
       : db_options_(db_options),
         number_(kTestFileNumber),
         blob_file_set_(blob_file_set) {}
@@ -94,7 +94,7 @@ class FileManager : public BlobFileManager {
 
   Env* env_{Env::Default()};
   EnvOptions env_options_;
-  TitanDBOptions db_options_;
+  NubaseDBOptions db_options_;
   std::atomic<uint64_t> number_{0};
   BlobFileSet* blob_file_set_;
 };
@@ -164,8 +164,8 @@ class TableBuilderTest : public testing::Test {
     db_options_.dirname = tmpdir_;
     cf_options_.min_blob_size = kMinBlobSize;
     blob_file_set_.reset(new BlobFileSet(db_options_, nullptr));
-    std::map<uint32_t, TitanCFOptions> cfs{{0, cf_options_}};
-    db_impl_.reset(new TitanDBImpl(db_options_, tmpdir_));
+    std::map<uint32_t, NubaseCFOptions> cfs{{0, cf_options_}};
+    db_impl_.reset(new NubaseDBImpl(db_options_, tmpdir_));
     db_impl_->TEST_set_initialized(true);
     blob_file_set_->AddColumnFamilies(cfs);
     blob_manager_.reset(new FileManager(db_options_, blob_file_set_.get()));
@@ -174,7 +174,7 @@ class TableBuilderTest : public testing::Test {
         std::make_shared<TestTableFactory>(cf_options_.table_factory);
     cf_options_.table_factory = base_table_factory_;
     cf_ioptions_.table_factory = base_table_factory_.get();
-    table_factory_.reset(new TitanTableFactory(
+    table_factory_.reset(new NubaseTableFactory(
         db_options_, cf_options_, db_impl_.get(), blob_manager_, &mutex_,
         blob_file_set_.get(), nullptr));
   }
@@ -258,8 +258,8 @@ class TableBuilderTest : public testing::Test {
   Env* env_{Env::Default()};
   EnvOptions env_options_;
   Options options_;
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   MutableCFOptions cf_moptions_;
   ImmutableCFOptions cf_ioptions_;
   std::vector<std::unique_ptr<IntTblPropCollectorFactory>> collectors_;
@@ -267,14 +267,14 @@ class TableBuilderTest : public testing::Test {
   std::string tmpdir_;
   std::string base_name_;
   std::string blob_name_;
-  std::unique_ptr<TitanDBImpl> db_impl_;
+  std::unique_ptr<NubaseDBImpl> db_impl_;
   std::shared_ptr<TestTableFactory> base_table_factory_;
   std::unique_ptr<TableFactory> table_factory_;
   std::shared_ptr<BlobFileManager> blob_manager_;
   std::unique_ptr<BlobFileSet> blob_file_set_;
 };
 
-// Before TitanDBImpl initialized, table factory should return base table
+// Before NubaseDBImpl initialized, table factory should return base table
 // builder.
 TEST_F(TableBuilderTest, BeforeDBInitialized) {
   CompressionOptions compression_opts;
@@ -447,7 +447,7 @@ TEST_F(TableBuilderTest, NumEntries) {
 // To test size of each blob file is around blob_file_target_size after building
 TEST_F(TableBuilderTest, TargetSize) {
   cf_options_.blob_file_target_size = kTargetBlobFileSize;
-  table_factory_.reset(new TitanTableFactory(
+  table_factory_.reset(new NubaseTableFactory(
       db_options_, cf_options_, db_impl_.get(), blob_manager_, &mutex_,
       blob_file_set_.get(), nullptr));
   std::unique_ptr<WritableFileWriter> base_file;
@@ -478,7 +478,7 @@ TEST_F(TableBuilderTest, TargetSize) {
 // correct
 TEST_F(TableBuilderTest, LevelMerge) {
   cf_options_.level_merge = true;
-  table_factory_.reset(new TitanTableFactory(
+  table_factory_.reset(new NubaseTableFactory(
       db_options_, cf_options_, db_impl_.get(), blob_manager_, &mutex_,
       blob_file_set_.get(), nullptr));
   std::unique_ptr<WritableFileWriter> base_file;

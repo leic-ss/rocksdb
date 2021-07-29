@@ -12,8 +12,8 @@ namespace mblobdb {
 class BlobFileCache {
  public:
   // Constructs a blob file cache to cache opened files.
-  BlobFileCache(const TitanDBOptions& db_options,
-                const TitanCFOptions& cf_options, std::shared_ptr<Cache> cache,
+  BlobFileCache(const NubaseDBOptions& db_options,
+                const NubaseCFOptions& cf_options, std::shared_ptr<Cache> cache,
                 TitanStats* stats);
 
   // Gets the blob record pointed by the handle in the specified file
@@ -40,8 +40,8 @@ class BlobFileCache {
 
   Env* env_;
   EnvOptions env_options_;
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   std::shared_ptr<Cache> cache_;
   TitanStats* stats_;
 };

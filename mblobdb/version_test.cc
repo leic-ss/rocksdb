@@ -26,8 +26,8 @@ void DeleteDir(Env* env, const std::string& dirname) {
 
 class VersionTest : public testing::Test {
  public:
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   std::shared_ptr<BlobFileCache> file_cache_;
   std::map<uint32_t, std::shared_ptr<BlobStorage>> column_families_;
   std::unique_ptr<BlobFileSet> blob_file_set_;
@@ -249,9 +249,9 @@ TEST_F(VersionTest, VersionBuilder) {
 
 TEST_F(VersionTest, ObsoleteFiles) {
   CheckColumnFamiliesSize(10);
-  std::map<uint32_t, TitanCFOptions> m;
-  m.insert({1, TitanCFOptions()});
-  m.insert({2, TitanCFOptions()});
+  std::map<uint32_t, NubaseCFOptions> m;
+  m.insert({1, NubaseCFOptions()});
+  m.insert({2, NubaseCFOptions()});
   blob_file_set_->AddColumnFamilies(m);
   {
     auto add1_1_5 = AddBlobFilesEdit(1, 1, 5);

@@ -17,7 +17,7 @@ namespace rocksdb {
 namespace mblobdb {
 
 Status NewBlobFileReader(uint64_t file_number, uint64_t readahead_size,
-                         const TitanDBOptions& db_options,
+                         const NubaseDBOptions& db_options,
                          const EnvOptions& env_options, Env* env,
                          std::unique_ptr<RandomAccessFileReader>* result) {
   std::unique_ptr<RandomAccessFile> file;
@@ -55,7 +55,7 @@ void EncodeBlobCache(std::string* dst, const Slice& prefix, uint64_t offset) {
 
 }  // namespace
 
-Status BlobFileReader::Open(const TitanCFOptions& options,
+Status BlobFileReader::Open(const NubaseCFOptions& options,
                             std::unique_ptr<RandomAccessFileReader> file,
                             uint64_t file_size,
                             std::unique_ptr<BlobFileReader>* result,
@@ -83,7 +83,7 @@ Status BlobFileReader::Open(const TitanCFOptions& options,
   return Status::OK();
 }
 
-BlobFileReader::BlobFileReader(const TitanCFOptions& options,
+BlobFileReader::BlobFileReader(const NubaseCFOptions& options,
                                std::unique_ptr<RandomAccessFileReader> file,
                                TitanStats* stats)
     : options_(options),

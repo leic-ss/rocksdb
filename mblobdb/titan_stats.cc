@@ -35,70 +35,70 @@ static const std::string num_discardable_ratio_le80_file =
 static const std::string num_discardable_ratio_le100_file =
     "num-discardable-ratio-le100-file";
 
-const std::string TitanDB::Properties::kNumBlobFilesAtLevelPrefix =
+const std::string NubaseDB::Properties::kNumBlobFilesAtLevelPrefix =
     titandb_prefix + num_blob_files_at_level_prefix;
-const std::string TitanDB::Properties::kLiveBlobSize =
+const std::string NubaseDB::Properties::kLiveBlobSize =
     titandb_prefix + live_blob_size;
-const std::string TitanDB::Properties::kNumLiveBlobFile =
+const std::string NubaseDB::Properties::kNumLiveBlobFile =
     titandb_prefix + num_live_blob_file;
-const std::string TitanDB::Properties::kNumObsoleteBlobFile =
+const std::string NubaseDB::Properties::kNumObsoleteBlobFile =
     titandb_prefix + num_obsolete_blob_file;
-const std::string TitanDB::Properties::kLiveBlobFileSize =
+const std::string NubaseDB::Properties::kLiveBlobFileSize =
     titandb_prefix + live_blob_file_size;
-const std::string TitanDB::Properties::kObsoleteBlobFileSize =
+const std::string NubaseDB::Properties::kObsoleteBlobFileSize =
     titandb_prefix + obsolete_blob_file_size;
-const std::string TitanDB::Properties::kNumDiscardableRatioLE0File =
+const std::string NubaseDB::Properties::kNumDiscardableRatioLE0File =
     titandb_prefix + num_discardable_ratio_le0_file;
-const std::string TitanDB::Properties::kNumDiscardableRatioLE20File =
+const std::string NubaseDB::Properties::kNumDiscardableRatioLE20File =
     titandb_prefix + num_discardable_ratio_le20_file;
-const std::string TitanDB::Properties::kNumDiscardableRatioLE50File =
+const std::string NubaseDB::Properties::kNumDiscardableRatioLE50File =
     titandb_prefix + num_discardable_ratio_le50_file;
-const std::string TitanDB::Properties::kNumDiscardableRatioLE80File =
+const std::string NubaseDB::Properties::kNumDiscardableRatioLE80File =
     titandb_prefix + num_discardable_ratio_le80_file;
-const std::string TitanDB::Properties::kNumDiscardableRatioLE100File =
+const std::string NubaseDB::Properties::kNumDiscardableRatioLE100File =
     titandb_prefix + num_discardable_ratio_le100_file;
 
 const std::unordered_map<
     std::string, std::function<uint64_t(const TitanInternalStats*, Slice)>>
     TitanInternalStats::stats_type_string_map = {
-        {TitanDB::Properties::kNumBlobFilesAtLevelPrefix,
+        {NubaseDB::Properties::kNumBlobFilesAtLevelPrefix,
          &TitanInternalStats::HandleNumBlobFilesAtLevel},
-        {TitanDB::Properties::kLiveBlobSize,
+        {NubaseDB::Properties::kLiveBlobSize,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::LIVE_BLOB_SIZE, std::placeholders::_2)},
-        {TitanDB::Properties::kNumLiveBlobFile,
+        {NubaseDB::Properties::kNumLiveBlobFile,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_LIVE_BLOB_FILE,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumObsoleteBlobFile,
+        {NubaseDB::Properties::kNumObsoleteBlobFile,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_OBSOLETE_BLOB_FILE,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kLiveBlobFileSize,
+        {NubaseDB::Properties::kLiveBlobFileSize,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::LIVE_BLOB_FILE_SIZE,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kObsoleteBlobFileSize,
+        {NubaseDB::Properties::kObsoleteBlobFileSize,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::OBSOLETE_BLOB_FILE_SIZE,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumDiscardableRatioLE0File,
+        {NubaseDB::Properties::kNumDiscardableRatioLE0File,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_DISCARDABLE_RATIO_LE0,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumDiscardableRatioLE20File,
+        {NubaseDB::Properties::kNumDiscardableRatioLE20File,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_DISCARDABLE_RATIO_LE20,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumDiscardableRatioLE50File,
+        {NubaseDB::Properties::kNumDiscardableRatioLE50File,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_DISCARDABLE_RATIO_LE50,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumDiscardableRatioLE80File,
+        {NubaseDB::Properties::kNumDiscardableRatioLE80File,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_DISCARDABLE_RATIO_LE80,
                    std::placeholders::_2)},
-        {TitanDB::Properties::kNumDiscardableRatioLE100File,
+        {NubaseDB::Properties::kNumDiscardableRatioLE100File,
          std::bind(&TitanInternalStats::HandleStatsValue, std::placeholders::_1,
                    TitanInternalStats::NUM_DISCARDABLE_RATIO_LE100,
                    std::placeholders::_2)},

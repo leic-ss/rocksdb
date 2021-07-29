@@ -16,7 +16,7 @@ namespace mblobdb {
 class BlobFileIteratorTest : public testing::Test {
  public:
   Env* env_{Env::Default()};
-  TitanOptions titan_options_;
+  NubaseOptions titan_options_;
   EnvOptions env_options_;
   std::string dirname_;
   std::string file_name_;
@@ -52,8 +52,8 @@ class BlobFileIteratorTest : public testing::Test {
   }
 
   void NewBuilder() {
-    TitanDBOptions db_options(titan_options_);
-    TitanCFOptions cf_options(titan_options_);
+    NubaseDBOptions db_options(titan_options_);
+    NubaseCFOptions cf_options(titan_options_);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     {
@@ -86,7 +86,7 @@ class BlobFileIteratorTest : public testing::Test {
     NewBlobFileReader(file_number_, 0, titan_options_, env_options_, env_,
                       &readable_file_);
     blob_file_iterator_.reset(new BlobFileIterator{
-        std::move(readable_file_), file_number_, file_size, TitanCFOptions()});
+        std::move(readable_file_), file_number_, file_size, NubaseCFOptions()});
   }
 
   void TestBlobFileIterator() {
@@ -115,7 +115,7 @@ class BlobFileIteratorTest : public testing::Test {
 };
 
 TEST_F(BlobFileIteratorTest, Basic) {
-  TitanOptions options;
+  NubaseOptions options;
   TestBlobFileIterator();
 }
 
@@ -190,7 +190,7 @@ TEST_F(BlobFileIteratorTest, MergeIterator) {
                         &readable_file_);
       iters.emplace_back(std::unique_ptr<BlobFileIterator>(
           new BlobFileIterator{std::move(readable_file_), file_number_,
-                               file_size, TitanCFOptions()}));
+                               file_size, NubaseCFOptions()}));
       file_number_ = Random::GetTLSInstance()->Next();
       file_name_ = BlobFileName(dirname_, file_number_);
       NewBuilder();
@@ -203,7 +203,7 @@ TEST_F(BlobFileIteratorTest, MergeIterator) {
   NewBlobFileReader(file_number_, 0, titan_options_, env_options_, env_,
                     &readable_file_);
   iters.emplace_back(std::unique_ptr<BlobFileIterator>(new BlobFileIterator{
-      std::move(readable_file_), file_number_, file_size, TitanCFOptions()}));
+      std::move(readable_file_), file_number_, file_size, NubaseCFOptions()}));
   BlobFileMergeIterator iter(std::move(iters), titan_options_.comparator);
 
   iter.SeekToFirst();

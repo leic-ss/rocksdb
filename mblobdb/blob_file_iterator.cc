@@ -8,7 +8,7 @@ namespace mblobdb {
 
 BlobFileIterator::BlobFileIterator(
     std::unique_ptr<RandomAccessFileReader>&& file, uint64_t file_name,
-    uint64_t file_size, const TitanCFOptions& titan_cf_options)
+    uint64_t file_size, const NubaseCFOptions& titan_cf_options)
     : file_(std::move(file)),
       file_number_(file_name),
       file_size_(file_size),

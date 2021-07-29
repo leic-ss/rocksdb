@@ -11,7 +11,7 @@ BlobFileSizeCollectorFactory::CreateTablePropertiesCollector(
 }
 
 const std::string BlobFileSizeCollector::kPropertiesName =
-    "TitanDB.blob_discardable_size";
+    "NubaseDB.blob_discardable_size";
 
 bool BlobFileSizeCollector::Encode(
     const std::map<uint64_t, uint64_t>& blob_files_size, std::string* result) {

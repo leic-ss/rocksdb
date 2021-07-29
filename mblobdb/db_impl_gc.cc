@@ -11,7 +11,7 @@
 namespace rocksdb {
 namespace mblobdb {
 
-Status TitanDBImpl::ExtractGCStatsFromTableProperty(
+Status NubaseDBImpl::ExtractGCStatsFromTableProperty(
     const std::shared_ptr<const TableProperties>& table_properties, bool to_add,
     std::map<uint64_t, int64_t>* blob_file_size_diff) {
   assert(blob_file_size_diff != nullptr);
@@ -23,7 +23,7 @@ Status TitanDBImpl::ExtractGCStatsFromTableProperty(
                                          blob_file_size_diff);
 }
 
-Status TitanDBImpl::ExtractGCStatsFromTableProperty(
+Status NubaseDBImpl::ExtractGCStatsFromTableProperty(
     const TableProperties& table_properties, bool to_add,
     std::map<uint64_t, int64_t>* blob_file_size_diff) {
   assert(blob_file_size_diff != nullptr);
@@ -49,7 +49,7 @@ Status TitanDBImpl::ExtractGCStatsFromTableProperty(
   return Status::OK();
 }
 
-Status TitanDBImpl::InitializeGC(
+Status NubaseDBImpl::InitializeGC(
     const std::vector<ColumnFamilyHandle*>& cf_handles) {
   assert(!initialized());
   Status s;
@@ -102,7 +102,7 @@ Status TitanDBImpl::InitializeGC(
   return s;
 }
 
-void TitanDBImpl::MaybeScheduleGC() {
+void NubaseDBImpl::MaybeScheduleGC() {
   mutex_.AssertHeld();
 
   if (db_options_.disable_background_gc) return;
@@ -113,16 +113,16 @@ void TitanDBImpl::MaybeScheduleGC() {
          bg_gc_scheduled_ < db_options_.max_background_gc) {
     unscheduled_gc_--;
     bg_gc_scheduled_++;
-    thread_pool_->SubmitJob(std::bind(&TitanDBImpl::BGWorkGC, this));
+    thread_pool_->SubmitJob(std::bind(&NubaseDBImpl::BGWorkGC, this));
   }
 }
 
-void TitanDBImpl::BGWorkGC(void* db) {
-  reinterpret_cast<TitanDBImpl*>(db)->BackgroundCallGC();
+void NubaseDBImpl::BGWorkGC(void* db) {
+  reinterpret_cast<NubaseDBImpl*>(db)->BackgroundCallGC();
 }
 
-void TitanDBImpl::BackgroundCallGC() {
-  TEST_SYNC_POINT("TitanDBImpl::BackgroundCallGC:BeforeGCRunning");
+void NubaseDBImpl::BackgroundCallGC() {
+  TEST_SYNC_POINT("NubaseDBImpl::BackgroundCallGC:BeforeGCRunning");
   {
     MutexLock l(&mutex_);
     assert(bg_gc_scheduled_ > 0);
@@ -131,7 +131,7 @@ void TitanDBImpl::BackgroundCallGC() {
     }
     bg_gc_running_++;
 
-    TEST_SYNC_POINT("TitanDBImpl::BackgroundCallGC:BeforeBackgroundGC");
+    TEST_SYNC_POINT("NubaseDBImpl::BackgroundCallGC:BeforeBackgroundGC");
     if (!gc_queue_.empty()) {
       uint32_t column_family_id = PopFirstFromGCQueue();
       LogBuffer log_buffer(InfoLogLevel::INFO_LEVEL,
@@ -162,7 +162,7 @@ void TitanDBImpl::BackgroundCallGC() {
   }
 }
 
-Status TitanDBImpl::BackgroundGC(LogBuffer* log_buffer,
+Status NubaseDBImpl::BackgroundGC(LogBuffer* log_buffer,
                                  uint32_t column_family_id) {
   mutex_.AssertHeld();
 
@@ -176,7 +176,7 @@ Status TitanDBImpl::BackgroundGC(LogBuffer* log_buffer,
   if (!blob_file_set_->IsColumnFamilyObsolete(column_family_id)) {
     blob_storage = blob_file_set_->GetBlobStorage(column_family_id).lock();
   } else {
-    TEST_SYNC_POINT_CALLBACK("TitanDBImpl::BackgroundGC:CFDropped", nullptr);
+    TEST_SYNC_POINT_CALLBACK("NubaseDBImpl::BackgroundGC:CFDropped", nullptr);
     ROCKS_LOG_BUFFER(log_buffer, "GC skip dropped colum family [%s].",
                      cf_info_[column_family_id].name.c_str());
   }
@@ -240,11 +240,11 @@ Status TitanDBImpl::BackgroundGC(LogBuffer* log_buffer,
                    s.ToString().c_str());
   }
 
-  TEST_SYNC_POINT("TitanDBImpl::BackgroundGC:Finish");
+  TEST_SYNC_POINT("NubaseDBImpl::BackgroundGC:Finish");
   return s;
 }
 
-Status TitanDBImpl::TEST_StartGC(uint32_t column_family_id) {
+Status NubaseDBImpl::TEST_StartGC(uint32_t column_family_id) {
   // BackgroundCallGC
   Status s;
   LogBuffer log_buffer(InfoLogLevel::INFO_LEVEL, db_options_.info_log.get());
@@ -275,7 +275,7 @@ Status TitanDBImpl::TEST_StartGC(uint32_t column_family_id) {
   return s;
 }
 
-void TitanDBImpl::TEST_WaitForBackgroundGC() {
+void NubaseDBImpl::TEST_WaitForBackgroundGC() {
   MutexLock l(&mutex_);
   while (bg_gc_scheduled_ > 0) {
     bg_cv_.Wait();

@@ -6,35 +6,35 @@
 namespace rocksdb {
 namespace mblobdb {
 
-struct TitanCFDescriptor {
+struct NubaseCFDescriptor {
   std::string name;
-  TitanCFOptions options;
-  TitanCFDescriptor()
-      : name(kDefaultColumnFamilyName), options(TitanCFOptions()) {}
-  TitanCFDescriptor(const std::string& _name, const TitanCFOptions& _options)
+  NubaseCFOptions options;
+  NubaseCFDescriptor()
+      : name(kDefaultColumnFamilyName), options(NubaseCFOptions()) {}
+  NubaseCFDescriptor(const std::string& _name, const NubaseCFOptions& _options)
       : name(_name), options(_options) {}
 };
 
-class TitanDB : public StackableDB {
+class NubaseDB : public StackableDB {
  public:
-  static Status Open(const TitanOptions& options, const std::string& dbname,
-                     TitanDB** db);
+  static Status Open(const NubaseOptions& options, const std::string& dbname,
+                     NubaseDB** db);
 
-  static Status Open(const TitanDBOptions& db_options,
+  static Status Open(const NubaseDBOptions& db_options,
                      const std::string& dbname,
-                     const std::vector<TitanCFDescriptor>& descs,
-                     std::vector<ColumnFamilyHandle*>* handles, TitanDB** db);
+                     const std::vector<NubaseCFDescriptor>& descs,
+                     std::vector<ColumnFamilyHandle*>* handles, NubaseDB** db);
 
-  TitanDB() : StackableDB(nullptr) {}
+  NubaseDB() : StackableDB(nullptr) {}
 
   using StackableDB::CreateColumnFamily;
   Status CreateColumnFamily(const ColumnFamilyOptions& options,
                             const std::string& name,
                             ColumnFamilyHandle** handle) override {
-    TitanCFDescriptor desc(name, TitanCFOptions(options));
+    NubaseCFDescriptor desc(name, NubaseCFOptions(options));
     return CreateColumnFamily(desc, handle);
   }
-  Status CreateColumnFamily(const TitanCFDescriptor& desc,
+  Status CreateColumnFamily(const NubaseCFDescriptor& desc,
                             ColumnFamilyHandle** handle) {
     std::vector<ColumnFamilyHandle*> handles;
     Status s = CreateColumnFamilies({desc}, &handles);
@@ -48,23 +48,23 @@ class TitanDB : public StackableDB {
   Status CreateColumnFamilies(
       const ColumnFamilyOptions& options, const std::vector<std::string>& names,
       std::vector<ColumnFamilyHandle*>* handles) override {
-    std::vector<TitanCFDescriptor> descs;
+    std::vector<NubaseCFDescriptor> descs;
     for (auto& name : names) {
-      descs.emplace_back(name, TitanCFOptions(options));
+      descs.emplace_back(name, NubaseCFOptions(options));
     }
     return CreateColumnFamilies(descs, handles);
   }
   Status CreateColumnFamilies(
       const std::vector<ColumnFamilyDescriptor>& base_descs,
       std::vector<ColumnFamilyHandle*>* handles) override {
-    std::vector<TitanCFDescriptor> descs;
+    std::vector<NubaseCFDescriptor> descs;
     for (auto& desc : base_descs) {
-      descs.emplace_back(desc.name, TitanCFOptions(desc.options));
+      descs.emplace_back(desc.name, NubaseCFOptions(desc.options));
     }
     return CreateColumnFamilies(descs, handles);
   }
   virtual Status CreateColumnFamilies(
-      const std::vector<TitanCFDescriptor>& descs,
+      const std::vector<NubaseCFDescriptor>& descs,
       std::vector<ColumnFamilyHandle*>* handles) = 0;
 
   Status DropColumnFamily(ColumnFamilyHandle* handle) override {
@@ -105,7 +105,7 @@ class TitanDB : public StackableDB {
   using StackableDB::Merge;
   Status Merge(const WriteOptions&, ColumnFamilyHandle*, const Slice& /*key*/,
                const Slice& /*value*/) override {
-    return Status::NotSupported("TitanDB doesn't support this operation");
+    return Status::NotSupported("NubaseDB doesn't support this operation");
   }
 
   using rocksdb::StackableDB::SingleDelete;
@@ -135,9 +135,9 @@ class TitanDB : public StackableDB {
 
   virtual std::string setMaxFullScanSpeed(uint64_t max_scan_speed) { return std::string("not implemented!\n"); }
 
-  virtual TitanOptions GetTitanOptions(
+  virtual NubaseOptions GetTitanOptions(
       ColumnFamilyHandle* column_family) const = 0;
-  virtual TitanOptions GetTitanOptions() const {
+  virtual NubaseOptions GetTitanOptions() const {
     return GetTitanOptions(DefaultColumnFamily());
   }
 
@@ -146,7 +146,7 @@ class TitanDB : public StackableDB {
                     const std::unordered_map<std::string, std::string>&
                         new_options) override = 0;
 
-  virtual TitanDBOptions GetTitanDBOptions() const = 0;
+  virtual NubaseDBOptions GetTitanDBOptions() const = 0;
 
   struct Properties {
     // "rocksdb.titandb.num-blob-files-at-level<N>" - returns string containing

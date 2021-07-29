@@ -25,8 +25,8 @@ class BlobStorage {
     this->stats_ = bs.stats_;
   }
 
-  BlobStorage(const TitanDBOptions& _db_options,
-              const TitanCFOptions& _cf_options, uint32_t cf_id,
+  BlobStorage(const NubaseDBOptions& _db_options,
+              const NubaseCFOptions& _cf_options, uint32_t cf_id,
               std::shared_ptr<BlobFileCache> _file_cache, TitanStats* stats)
       : db_options_(_db_options),
         cf_options_(_cf_options),
@@ -43,9 +43,9 @@ class BlobStorage {
     }
   }
 
-  const TitanDBOptions& db_options() { return db_options_; }
+  const NubaseDBOptions& db_options() { return db_options_; }
 
-  const TitanCFOptions& cf_options() { return cf_options_; }
+  const NubaseCFOptions& cf_options() { return cf_options_; }
 
   const std::vector<GCScore> gc_score() {
     MutexLock l(&mutex_);
@@ -70,7 +70,7 @@ class BlobStorage {
   // corruption if the file doesn't exist.
   std::weak_ptr<BlobFileMeta> FindFile(uint64_t file_number) const;
 
-  // Must call before TitanDBImpl initialized.
+  // Must call before NubaseDBImpl initialized.
   void InitializeAllFiles() {
     for (auto& file : files_) {
       file.second->FileStateTransit(BlobFileMeta::FileEvent::kDbRestart);
@@ -146,8 +146,8 @@ class BlobStorage {
                               SequenceNumber obsolete_sequence);
   bool RemoveFile(uint64_t file_number);
 
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   uint32_t cf_id_;
 
   mutable port::Mutex mutex_;

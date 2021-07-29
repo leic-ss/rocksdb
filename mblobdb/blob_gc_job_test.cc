@@ -25,11 +25,11 @@ std::string GenValue(int i) {
 class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
  public:
   std::string dbname_;
-  TitanDB* db_;
+  NubaseDB* db_;
   DBImpl* base_db_;
-  TitanDBImpl* tdb_;
+  NubaseDBImpl* tdb_;
   BlobFileSet* blob_file_set_;
-  TitanOptions options_;
+  NubaseOptions options_;
   port::Mutex* mutex_;
 
   BlobGCJobTest() : dbname_(test::TmpDir()) {
@@ -80,8 +80,8 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
   }
 
   void Open() {
-    ASSERT_OK(TitanDB::Open(options_, dbname_, &db_));
-    tdb_ = reinterpret_cast<TitanDBImpl*>(db_);
+    ASSERT_OK(NubaseDB::Open(options_, dbname_, &db_));
+    tdb_ = reinterpret_cast<NubaseDBImpl*>(db_);
     blob_file_set_ = tdb_->blob_file_set_.get();
     mutex_ = &tdb_->mutex_;
     base_db_ = reinterpret_cast<DBImpl*>(tdb_->GetRootDB());
@@ -127,15 +127,15 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
     db_ = nullptr;
   }
 
-  // TODO: unifiy this and TitanDBImpl::TEST_StartGC
+  // TODO: unifiy this and NubaseDBImpl::TEST_StartGC
   void RunGC(bool expect_gc, bool disable_merge_small = false) {
     MutexLock l(mutex_);
     Status s;
     auto* cfh = base_db_->DefaultColumnFamily();
 
     // Build BlobGC
-    TitanDBOptions db_options;
-    TitanCFOptions cf_options;
+    NubaseDBOptions db_options;
+    NubaseCFOptions cf_options;
     LogBuffer log_buffer(InfoLogLevel::INFO_LEVEL, db_options.info_log.get());
     cf_options.min_gc_batch_size = 0;
     if (disable_merge_small) {
@@ -195,7 +195,7 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
       return s;
     }
     iter->reset(new BlobFileIterator(std::move(file), file_number, file_size,
-                                     TitanCFOptions()));
+                                     NubaseCFOptions()));
     return Status::OK();
   }
 
@@ -214,9 +214,9 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
     auto rewrite_status = base_db_->Write(WriteOptions(), &wb);
 
     std::vector<BlobFileMeta*> tmp;
-    BlobGC blob_gc(std::move(tmp), TitanCFOptions(), false /*trigger_next*/);
+    BlobGC blob_gc(std::move(tmp), NubaseCFOptions(), false /*trigger_next*/);
     blob_gc.SetColumnFamily(cfh);
-    BlobGCJob blob_gc_job(&blob_gc, base_db_, mutex_, TitanDBOptions(),
+    BlobGCJob blob_gc_job(&blob_gc, base_db_, mutex_, NubaseDBOptions(),
                           GetParam(), Env::Default(), EnvOptions(), nullptr,
                           blob_file_set_, nullptr, nullptr, nullptr);
     bool discardable = false;

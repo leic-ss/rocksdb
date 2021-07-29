@@ -23,9 +23,9 @@
 namespace rocksdb {
 namespace mblobdb {
 
-class TitanDBImpl::FileManager : public BlobFileManager {
+class NubaseDBImpl::FileManager : public BlobFileManager {
  public:
-  FileManager(TitanDBImpl* db) : db_(db) {}
+  FileManager(NubaseDBImpl* db) : db_(db) {}
 
   Status NewFile(std::unique_ptr<BlobFileHandle>* handle) override {
     auto number = db_->blob_file_set_->NewFileNumber();
@@ -127,10 +127,10 @@ class TitanDBImpl::FileManager : public BlobFileManager {
     std::unique_ptr<WritableFileWriter> file_;
   };
 
-  TitanDBImpl* db_;
+  NubaseDBImpl* db_;
 };
 
-TitanDBImpl::TitanDBImpl(const TitanDBOptions& options,
+NubaseDBImpl::NubaseDBImpl(const NubaseDBOptions& options,
                          const std::string& dbname)
     : bg_cv_(&mutex_),
       dbname_(dbname),
@@ -149,24 +149,24 @@ TitanDBImpl::TitanDBImpl(const TitanDBOptions& options,
   shared_merge_operator_ = std::make_shared<BlobIndexMergeOperator>();
 }
 
-TitanDBImpl::~TitanDBImpl() { Close(); }
+NubaseDBImpl::~NubaseDBImpl() { Close(); }
 
-void TitanDBImpl::StartBackgroundTasks() {
+void NubaseDBImpl::StartBackgroundTasks() {
   if (thread_purge_obsolete_ == nullptr &&
       db_options_.purge_obsolete_files_period_sec > 0) {
     thread_purge_obsolete_.reset(new rocksdb::RepeatableThread(
-        [this]() { TitanDBImpl::PurgeObsoleteFiles(); }, "titanbg", env_,
+        [this]() { NubaseDBImpl::PurgeObsoleteFiles(); }, "titanbg", env_,
         db_options_.purge_obsolete_files_period_sec * 1000 * 1000));
   }
   if (thread_dump_stats_ == nullptr &&
       db_options_.titan_stats_dump_period_sec > 0) {
     thread_dump_stats_.reset(new rocksdb::RepeatableThread(
-        [this]() { TitanDBImpl::DumpStats(); }, "titanst", env_,
+        [this]() { NubaseDBImpl::DumpStats(); }, "titanst", env_,
         db_options_.titan_stats_dump_period_sec * 1000 * 1000));
   }
 }
 
-std::string TitanDBImpl::blob_gc_info(uint32_t limit)
+std::string NubaseDBImpl::blob_gc_info(uint32_t limit)
 {
     std::string gc_info;
     gc_info.append("bg_gc_scheduled_: ").append(std::to_string(bg_gc_scheduled_)).append("\n");
@@ -198,19 +198,19 @@ std::string TitanDBImpl::blob_gc_info(uint32_t limit)
     return std::move(gc_info);
 }
 
-Status TitanDBImpl::CompactAuto()
+Status NubaseDBImpl::CompactAuto()
 {
   if (db_impl_) return db_impl_->CompactAuto();
   return Status::NotSupported("Not initialized mblob!");
 }
 
-Status TitanDBImpl::CompactStatus(std::string& info)
+Status NubaseDBImpl::CompactStatus(std::string& info)
 {
   if (db_impl_) return db_impl_->CompactStatus(info);
   return Status::NotSupported("Not initialized mblob!");
 }
 
-std::string TitanDBImpl::setMaxFullScanSpeed(uint64_t max_scan_speed) {
+std::string NubaseDBImpl::setMaxFullScanSpeed(uint64_t max_scan_speed) {
     std::string str;
     str.append("set full scan speed ").append(std::to_string(max_full_scan_speed))
        .append(" => ").append(std::to_string(max_scan_speed)).append(" success!\n");
@@ -218,9 +218,9 @@ std::string TitanDBImpl::setMaxFullScanSpeed(uint64_t max_scan_speed) {
     return std::move(str);
 }
 
-Status TitanDBImpl::ValidateOptions(
-    const TitanDBOptions& options,
-    const std::vector<TitanCFDescriptor>& column_families) const {
+Status NubaseDBImpl::ValidateOptions(
+    const NubaseDBOptions& options,
+    const std::vector<NubaseCFDescriptor>& column_families) const {
   for (const auto& cf : column_families) {
     if (cf.options.level_merge &&
         !cf.options.level_compaction_dynamic_level_bytes) {
@@ -232,7 +232,7 @@ Status TitanDBImpl::ValidateOptions(
   return Status::OK();
 }
 
-Status TitanDBImpl::Open(const std::vector<TitanCFDescriptor>& descs,
+Status NubaseDBImpl::Open(const std::vector<NubaseCFDescriptor>& descs,
                          std::vector<ColumnFamilyHandle*>* handles) {
   if (handles == nullptr) {
     return Status::InvalidArgument("handles must be non-null.");
@@ -270,7 +270,7 @@ Status TitanDBImpl::Open(const std::vector<TitanCFDescriptor>& descs,
   return s;
 }
 
-Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
+Status NubaseDBImpl::OpenImpl(const std::vector<NubaseCFDescriptor>& descs,
                              std::vector<ColumnFamilyHandle*>* handles) {
   Status s = ValidateOptions(db_options_, descs);
   if (!s.ok()) {
@@ -307,7 +307,7 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
   db_options_.listeners.emplace_back(std::make_shared<BaseDbListener>(this));
   // Descriptors for actually open DB.
   std::vector<ColumnFamilyDescriptor> base_descs;
-  std::vector<std::shared_ptr<TitanTableFactory>> titan_table_factories;
+  std::vector<std::shared_ptr<NubaseTableFactory>> titan_table_factories;
   for (auto& desc : descs) {
     base_descs.emplace_back(desc.name, desc.options);
 
@@ -316,7 +316,7 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
     cf_opts.disable_auto_compactions = true;
     cf_opts.table_properties_collector_factories.emplace_back(
         std::make_shared<BlobFileSizeCollectorFactory>());
-    titan_table_factories.push_back(std::make_shared<TitanTableFactory>(
+    titan_table_factories.push_back(std::make_shared<NubaseTableFactory>(
         db_options_, desc.options, this, blob_manager_, &mutex_,
         blob_file_set_.get(), stats_.get()));
     cf_opts.table_factory = titan_table_factories.back();
@@ -341,7 +341,7 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
   db_impl_ = reinterpret_cast<DBImpl*>(db_->GetRootDB());
   assert(db_ != nullptr);
   assert(handles->size() == descs.size());
-  std::map<uint32_t, TitanCFOptions> column_families;
+  std::map<uint32_t, NubaseCFOptions> column_families;
   std::vector<ColumnFamilyHandle*> cf_with_compaction;
   for (size_t i = 0; i < descs.size(); i++) {
     cf_info_.emplace((*handles)[i]->GetID(),
@@ -361,7 +361,7 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
     return s;
   }
   s = InitializeGC(*handles);
-  TEST_SYNC_POINT_CALLBACK("TitanDBImpl::OpenImpl:BeforeInitialized", this);
+  TEST_SYNC_POINT_CALLBACK("NubaseDBImpl::OpenImpl:BeforeInitialized", this);
   // Initialization done.
   initialized_ = true;
   // Enable compaction and background tasks after initilization.
@@ -383,7 +383,7 @@ Status TitanDBImpl::OpenImpl(const std::vector<TitanCFDescriptor>& descs,
   return s;
 }
 
-Status TitanDBImpl::Close() {
+Status NubaseDBImpl::Close() {
   Status s;
   CloseImpl();
   if (db_) {
@@ -399,7 +399,7 @@ Status TitanDBImpl::Close() {
   return s;
 }
 
-Status TitanDBImpl::CloseImpl() {
+Status NubaseDBImpl::CloseImpl() {
   {
     MutexLock l(&mutex_);
     // Although `shuting_down_` is atomic bool object, we should set it under
@@ -434,17 +434,17 @@ Status TitanDBImpl::CloseImpl() {
   return Status::OK();
 }
 
-Status TitanDBImpl::CreateColumnFamilies(
-    const std::vector<TitanCFDescriptor>& descs,
+Status NubaseDBImpl::CreateColumnFamilies(
+    const std::vector<NubaseCFDescriptor>& descs,
     std::vector<ColumnFamilyHandle*>* handles) {
   std::vector<ColumnFamilyDescriptor> base_descs;
   std::vector<std::shared_ptr<TableFactory>> base_table_factory;
-  std::vector<std::shared_ptr<TitanTableFactory>> titan_table_factory;
+  std::vector<std::shared_ptr<NubaseTableFactory>> titan_table_factory;
   for (auto& desc : descs) {
     ColumnFamilyOptions options = desc.options;
-    // Replaces the provided table factory with TitanTableFactory.
+    // Replaces the provided table factory with NubaseTableFactory.
     base_table_factory.emplace_back(options.table_factory);
-    titan_table_factory.emplace_back(std::make_shared<TitanTableFactory>(
+    titan_table_factory.emplace_back(std::make_shared<NubaseTableFactory>(
         db_options_, desc.options, this, blob_manager_, &mutex_,
         blob_file_set_.get(), stats_.get()));
     options.table_factory = titan_table_factory.back();
@@ -458,7 +458,7 @@ Status TitanDBImpl::CreateColumnFamilies(
   assert(handles->size() == descs.size());
 
   if (s.ok()) {
-    std::map<uint32_t, TitanCFOptions> column_families;
+    std::map<uint32_t, NubaseCFOptions> column_families;
     {
       MutexLock l(&mutex_);
       for (size_t i = 0; i < descs.size(); i++) {
@@ -493,9 +493,9 @@ Status TitanDBImpl::CreateColumnFamilies(
   return s;
 }
 
-Status TitanDBImpl::DropColumnFamilies(
+Status NubaseDBImpl::DropColumnFamilies(
     const std::vector<ColumnFamilyHandle*>& handles) {
-  TEST_SYNC_POINT("TitanDBImpl::DropColumnFamilies:Begin");
+  TEST_SYNC_POINT("NubaseDBImpl::DropColumnFamilies:Begin");
   std::vector<uint32_t> column_families;
   std::string column_families_str;
   for (auto& handle : handles) {
@@ -513,7 +513,7 @@ Status TitanDBImpl::DropColumnFamilies(
       bg_cv_.Wait();
     }
   }
-  TEST_SYNC_POINT_CALLBACK("TitanDBImpl::DropColumnFamilies:BeforeBaseDBDropCF",
+  TEST_SYNC_POINT_CALLBACK("NubaseDBImpl::DropColumnFamilies:BeforeBaseDBDropCF",
                            nullptr);
   Status s = db_impl_->DropColumnFamilies(handles);
   if (s.ok()) {
@@ -536,7 +536,7 @@ Status TitanDBImpl::DropColumnFamilies(
   return s;
 }
 
-Status TitanDBImpl::DestroyColumnFamilyHandle(
+Status NubaseDBImpl::DestroyColumnFamilyHandle(
     ColumnFamilyHandle* column_family) {
   if (column_family == nullptr) {
     return Status::InvalidArgument("Column family handle is nullptr.");
@@ -566,7 +566,7 @@ Status TitanDBImpl::DestroyColumnFamilyHandle(
   return s;
 }
 
-Status TitanDBImpl::CompactFiles(
+Status NubaseDBImpl::CompactFiles(
     const CompactionOptions& compact_options, ColumnFamilyHandle* column_family,
     const std::vector<std::string>& input_file_names, const int output_level,
     const int output_path_id, std::vector<std::string>* const output_file_names,
@@ -587,7 +587,7 @@ Status TitanDBImpl::CompactFiles(
   return s;
 }
 
-Status TitanDBImpl::Put(const rocksdb::WriteOptions& options,
+Status NubaseDBImpl::Put(const rocksdb::WriteOptions& options,
                         rocksdb::ColumnFamilyHandle* column_family,
                         const rocksdb::Slice& key,
                         const rocksdb::Slice& value) {
@@ -595,24 +595,24 @@ Status TitanDBImpl::Put(const rocksdb::WriteOptions& options,
                       : db_->Put(options, column_family, key, value);
 }
 
-Status TitanDBImpl::Write(const rocksdb::WriteOptions& options,
+Status NubaseDBImpl::Write(const rocksdb::WriteOptions& options,
                           rocksdb::WriteBatch* updates) {
   return HasBGError() ? GetBGError() : db_->Write(options, updates);
 }
 
-// Status TitanDBImpl::MultiBatchWrite(const WriteOptions& options,
+// Status NubaseDBImpl::MultiBatchWrite(const WriteOptions& options,
 //                                     std::vector<WriteBatch*>&& updates) {
 //   return HasBGError() ? GetBGError()
 //                       : db_->MultiBatchWrite(options, std::move(updates));
 // }
 
-Status TitanDBImpl::Delete(const rocksdb::WriteOptions& options,
+Status NubaseDBImpl::Delete(const rocksdb::WriteOptions& options,
                            rocksdb::ColumnFamilyHandle* column_family,
                            const rocksdb::Slice& key) {
   return HasBGError() ? GetBGError() : db_->Delete(options, column_family, key);
 }
 
-Status TitanDBImpl::IngestExternalFile(
+Status NubaseDBImpl::IngestExternalFile(
     rocksdb::ColumnFamilyHandle* column_family,
     const std::vector<std::string>& external_files,
     const rocksdb::IngestExternalFileOptions& options) {
@@ -621,7 +621,7 @@ Status TitanDBImpl::IngestExternalFile(
              : db_->IngestExternalFile(column_family, external_files, options);
 }
 
-Status TitanDBImpl::CompactRange(const rocksdb::CompactRangeOptions& options,
+Status NubaseDBImpl::CompactRange(const rocksdb::CompactRangeOptions& options,
                                  rocksdb::ColumnFamilyHandle* column_family,
                                  const rocksdb::Slice* begin,
                                  const rocksdb::Slice* end) {
@@ -629,12 +629,12 @@ Status TitanDBImpl::CompactRange(const rocksdb::CompactRangeOptions& options,
                       : db_->CompactRange(options, column_family, begin, end);
 }
 
-Status TitanDBImpl::Flush(const rocksdb::FlushOptions& options,
+Status NubaseDBImpl::Flush(const rocksdb::FlushOptions& options,
                           rocksdb::ColumnFamilyHandle* column_family) {
   return HasBGError() ? GetBGError() : db_->Flush(options, column_family);
 }
 
-Status TitanDBImpl::Get(const ReadOptions& options, ColumnFamilyHandle* handle,
+Status NubaseDBImpl::Get(const ReadOptions& options, ColumnFamilyHandle* handle,
                         const Slice& key, PinnableSlice* value) {
   if (options.snapshot) {
     return GetImpl(options, handle, key, value);
@@ -646,7 +646,7 @@ Status TitanDBImpl::Get(const ReadOptions& options, ColumnFamilyHandle* handle,
   return GetImpl(ro, handle, key, value);
 }
 
-Status TitanDBImpl::GetImpl(const ReadOptions& options,
+Status NubaseDBImpl::GetImpl(const ReadOptions& options,
                             ColumnFamilyHandle* handle, const Slice& key,
                             PinnableSlice* value) {
   Status s;
@@ -708,7 +708,7 @@ Status TitanDBImpl::GetImpl(const ReadOptions& options,
   return s;
 }
 
-std::vector<Status> TitanDBImpl::MultiGet(
+std::vector<Status> NubaseDBImpl::MultiGet(
     const ReadOptions& options, const std::vector<ColumnFamilyHandle*>& handles,
     const std::vector<Slice>& keys, std::vector<std::string>* values) {
   auto options_copy = options;
@@ -722,7 +722,7 @@ std::vector<Status> TitanDBImpl::MultiGet(
   return MultiGetImpl(ro, handles, keys, values);
 }
 
-std::vector<Status> TitanDBImpl::MultiGetImpl(
+std::vector<Status> NubaseDBImpl::MultiGetImpl(
     const ReadOptions& options, const std::vector<ColumnFamilyHandle*>& handles,
     const std::vector<Slice>& keys, std::vector<std::string>* values) {
   std::vector<Status> res;
@@ -741,7 +741,7 @@ std::vector<Status> TitanDBImpl::MultiGetImpl(
   return res;
 }
 
-Iterator* TitanDBImpl::NewIterator(const TitanReadOptions& options,
+Iterator* NubaseDBImpl::NewIterator(const TitanReadOptions& options,
                                    ColumnFamilyHandle* handle) {
   TitanReadOptions options_copy = options;
   options_copy.total_order_seek = true;
@@ -755,7 +755,7 @@ Iterator* TitanDBImpl::NewIterator(const TitanReadOptions& options,
   return NewIteratorImpl(ro, handle, snapshot);
 }
 
-Iterator* TitanDBImpl::NewIteratorImpl(
+Iterator* NubaseDBImpl::NewIteratorImpl(
     const TitanReadOptions& options, ColumnFamilyHandle* handle,
     std::shared_ptr<ManagedSnapshot> snapshot) {
   auto cfd = reinterpret_cast<ColumnFamilyHandleImpl*>(handle)->cfd();
@@ -777,7 +777,7 @@ Iterator* TitanDBImpl::NewIteratorImpl(
                              env_, stats_.get(), db_options_.info_log.get());
 }
 
-Status TitanDBImpl::NewIterators(
+Status NubaseDBImpl::NewIterators(
     const TitanReadOptions& options,
     const std::vector<ColumnFamilyHandle*>& handles,
     std::vector<Iterator*>* iterators) {
@@ -796,16 +796,16 @@ Status TitanDBImpl::NewIterators(
   return Status::OK();
 }
 
-const Snapshot* TitanDBImpl::GetSnapshot() { return db_->GetSnapshot(); }
+const Snapshot* NubaseDBImpl::GetSnapshot() { return db_->GetSnapshot(); }
 
-void TitanDBImpl::ReleaseSnapshot(const Snapshot* snapshot) {
+void NubaseDBImpl::ReleaseSnapshot(const Snapshot* snapshot) {
   // TODO:
   // We can record here whether the oldest snapshot is released.
   // If not, we can just skip the next round of purging obsolete files.
   db_->ReleaseSnapshot(snapshot);
 }
 
-Status TitanDBImpl::DeleteFilesInRanges(ColumnFamilyHandle* column_family,
+Status NubaseDBImpl::DeleteFilesInRanges(ColumnFamilyHandle* column_family,
                                         const RangePtr* ranges, size_t n,
                                         bool include_end) {
   TablePropertiesCollection props;
@@ -970,7 +970,7 @@ Status TitanDBImpl::DeleteFilesInRanges(ColumnFamilyHandle* column_family,
   return s;
 }
 
-void TitanDBImpl::MarkFileIfNeedMerge(
+void NubaseDBImpl::MarkFileIfNeedMerge(
     const std::vector<std::shared_ptr<BlobFileMeta>>& files,
     int max_sorted_runs) {
   mutex_.AssertHeld();
@@ -1009,7 +1009,7 @@ void TitanDBImpl::MarkFileIfNeedMerge(
   }
 }
 
-Options TitanDBImpl::GetOptions(ColumnFamilyHandle* column_family) const {
+Options NubaseDBImpl::GetOptions(ColumnFamilyHandle* column_family) const {
   assert(column_family != nullptr);
   Options options = db_->GetOptions(column_family);
   uint32_t cf_id = column_family->GetID();
@@ -1027,7 +1027,7 @@ Options TitanDBImpl::GetOptions(ColumnFamilyHandle* column_family) const {
   return options;
 }
 
-Status TitanDBImpl::SetOptions(
+Status NubaseDBImpl::SetOptions(
     ColumnFamilyHandle* column_family,
     const std::unordered_map<std::string, std::string>& new_options) {
   Status s;
@@ -1092,12 +1092,12 @@ Status TitanDBImpl::SetOptions(
   return Status::OK();
 }
 
-TitanOptions TitanDBImpl::GetTitanOptions(
+NubaseOptions NubaseDBImpl::GetTitanOptions(
     ColumnFamilyHandle* column_family) const {
   assert(column_family != nullptr);
   Options base_options = GetOptions(column_family);
-  TitanOptions titan_options;
-  *static_cast<TitanDBOptions*>(&titan_options) = db_options_;
+  NubaseOptions titan_options;
+  *static_cast<NubaseDBOptions*>(&titan_options) = db_options_;
   *static_cast<DBOptions*>(&titan_options) =
       static_cast<DBOptions>(base_options);
   uint32_t cf_id = column_family->GetID();
@@ -1105,21 +1105,21 @@ TitanOptions TitanDBImpl::GetTitanOptions(
     MutexLock l(&mutex_);
     assert(cf_info_.count(cf_id) > 0);
     const TitanColumnFamilyInfo& cf_info = cf_info_.at(cf_id);
-    *static_cast<TitanCFOptions*>(&titan_options) = TitanCFOptions(
+    *static_cast<NubaseCFOptions*>(&titan_options) = NubaseCFOptions(
         static_cast<ColumnFamilyOptions>(base_options),
         cf_info.immutable_cf_options, cf_info.mutable_cf_options);
   }
   return titan_options;
 }
 
-TitanDBOptions TitanDBImpl::GetTitanDBOptions() const {
+NubaseDBOptions NubaseDBImpl::GetTitanDBOptions() const {
   // Titan db_options_ is not mutable after DB open.
-  TitanDBOptions result = db_options_;
+  NubaseDBOptions result = db_options_;
   *static_cast<DBOptions*>(&result) = db_impl_->GetDBOptions();
   return result;
 }
 
-bool TitanDBImpl::GetProperty(ColumnFamilyHandle* column_family,
+bool NubaseDBImpl::GetProperty(ColumnFamilyHandle* column_family,
                               const Slice& property, std::string* value) {
   assert(column_family != nullptr);
   bool s = false;
@@ -1136,7 +1136,7 @@ bool TitanDBImpl::GetProperty(ColumnFamilyHandle* column_family,
   }
 }
 
-bool TitanDBImpl::GetIntProperty(ColumnFamilyHandle* column_family,
+bool NubaseDBImpl::GetIntProperty(ColumnFamilyHandle* column_family,
                                  const Slice& property, uint64_t* value) {
   assert(column_family != nullptr);
   bool s = false;
@@ -1153,8 +1153,8 @@ bool TitanDBImpl::GetIntProperty(ColumnFamilyHandle* column_family,
   }
 }
 
-void TitanDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
-  TEST_SYNC_POINT("TitanDBImpl::OnFlushCompleted:Begin");
+void NubaseDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
+  TEST_SYNC_POINT("NubaseDBImpl::OnFlushCompleted:Begin");
   if (!initialized()) {
     assert(false);
     return;
@@ -1225,12 +1225,12 @@ void TitanDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
                      file->live_data_size());
     }
   }
-  TEST_SYNC_POINT("TitanDBImpl::OnFlushCompleted:Finished");
+  TEST_SYNC_POINT("NubaseDBImpl::OnFlushCompleted:Finished");
 }
 
-void TitanDBImpl::OnCompactionCompleted(
+void NubaseDBImpl::OnCompactionCompleted(
     const CompactionJobInfo& compaction_job_info) {
-  TEST_SYNC_POINT("TitanDBImpl::OnCompactionCompleted:Begin");
+  TEST_SYNC_POINT("NubaseDBImpl::OnCompactionCompleted:Begin");
   if (!initialized()) {
     assert(false);
     return;
@@ -1381,7 +1381,7 @@ void TitanDBImpl::OnCompactionCompleted(
   }
 }
 
-Status TitanDBImpl::SetBGError(const Status& s) {
+Status NubaseDBImpl::SetBGError(const Status& s) {
   if (s.ok()) return s;
   mutex_.AssertHeld();
   Status bg_err = s;
@@ -1400,7 +1400,7 @@ Status TitanDBImpl::SetBGError(const Status& s) {
   return bg_err;
 }
 
-void TitanDBImpl::DumpStats() {
+void NubaseDBImpl::DumpStats() {
   if (stats_ == nullptr) {
     return;
   }

@@ -14,8 +14,8 @@ namespace mblobdb {
 
 class TitanTableBuilder : public TableBuilder {
  public:
-  TitanTableBuilder(uint32_t cf_id, const TitanDBOptions& db_options,
-                    const TitanCFOptions& cf_options,
+  TitanTableBuilder(uint32_t cf_id, const NubaseDBOptions& db_options,
+                    const NubaseCFOptions& cf_options,
                     std::unique_ptr<TableBuilder> base_builder,
                     std::shared_ptr<BlobFileManager> blob_manager,
                     std::weak_ptr<BlobStorage> blob_storage, TitanStats* stats,
@@ -64,8 +64,8 @@ class TitanTableBuilder : public TableBuilder {
 
   Status status_;
   uint32_t cf_id_;
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   std::unique_ptr<TableBuilder> base_builder_;
   std::unique_ptr<BlobFileHandle> blob_handle_;
   std::shared_ptr<BlobFileManager> blob_manager_;

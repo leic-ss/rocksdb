@@ -5,7 +5,7 @@
 namespace rocksdb {
 namespace mblobdb {
 
-BaseDbListener::BaseDbListener(TitanDBImpl* db) : db_impl_(db) {
+BaseDbListener::BaseDbListener(NubaseDBImpl* db) : db_impl_(db) {
   assert(db_impl_ != nullptr);
 }
 

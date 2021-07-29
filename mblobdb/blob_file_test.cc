@@ -29,10 +29,10 @@ class BlobFileTest : public testing::Test {
 
   std::string GenValue(uint64_t i) { return std::string(1024, i); }
 
-  void TestBlobFilePrefetcher(TitanOptions options) {
+  void TestBlobFilePrefetcher(NubaseOptions options) {
     options.dirname = dirname_;
-    TitanDBOptions db_options(options);
-    TitanCFOptions cf_options(options);
+    NubaseDBOptions db_options(options);
+    NubaseCFOptions cf_options(options);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     const int n = 100;
@@ -90,10 +90,10 @@ class BlobFileTest : public testing::Test {
     }
   }
 
-  void TestBlobFileReader(TitanOptions options) {
+  void TestBlobFileReader(NubaseOptions options) {
     options.dirname = dirname_;
-    TitanDBOptions db_options(options);
-    TitanCFOptions cf_options(options);
+    NubaseDBOptions db_options(options);
+    NubaseCFOptions cf_options(options);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     const int n = 100;
@@ -164,14 +164,14 @@ class BlobFileTest : public testing::Test {
 };
 
 TEST_F(BlobFileTest, BlobFileReader) {
-  TitanOptions options;
+  NubaseOptions options;
   TestBlobFileReader(options);
   options.blob_file_compression = kLZ4Compression;
   TestBlobFileReader(options);
 }
 
 TEST_F(BlobFileTest, BlobFilePrefetcher) {
-  TitanOptions options;
+  NubaseOptions options;
   TestBlobFilePrefetcher(options);
   options.blob_cache = NewLRUCache(1 << 20);
   TestBlobFilePrefetcher(options);

@@ -10,8 +10,8 @@ class BlobFileSizeCollectorTest : public testing::Test {
   Env* env_{Env::Default()};
   EnvOptions env_options_;
   Options options_;
-  TitanDBOptions db_options_;
-  TitanCFOptions cf_options_;
+  NubaseDBOptions db_options_;
+  NubaseCFOptions cf_options_;
   MutableCFOptions cf_moptions_;
   ImmutableCFOptions cf_ioptions_;
   std::unique_ptr<TableFactory> table_factory_;

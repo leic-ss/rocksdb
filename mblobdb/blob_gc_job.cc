@@ -96,7 +96,7 @@ void CSpeedLimit::limitrate()
 }
 
 BlobGCJob::BlobGCJob(BlobGC* blob_gc, DB* db, port::Mutex* mutex,
-                     const TitanDBOptions& titan_db_options,
+                     const NubaseDBOptions& titan_db_options,
                      bool gc_merge_rewrite, Env* env,
                      const EnvOptions& env_options,
                      BlobFileManager* blob_file_manager,

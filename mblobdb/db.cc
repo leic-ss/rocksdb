@@ -5,14 +5,14 @@
 namespace rocksdb {
 namespace mblobdb {
 
-Status TitanDB::Open(const TitanOptions& options, const std::string& dbname,
-                     TitanDB** db) {
-  TitanDBOptions db_options(options);
-  TitanCFOptions cf_options(options);
-  std::vector<TitanCFDescriptor> descs;
+Status NubaseDB::Open(const NubaseOptions& options, const std::string& dbname,
+                     NubaseDB** db) {
+  NubaseDBOptions db_options(options);
+  NubaseCFOptions cf_options(options);
+  std::vector<NubaseCFDescriptor> descs;
   descs.emplace_back(kDefaultColumnFamilyName, cf_options);
   std::vector<ColumnFamilyHandle*> handles;
-  Status s = TitanDB::Open(db_options, dbname, descs, &handles, db);
+  Status s = NubaseDB::Open(db_options, dbname, descs, &handles, db);
   if (s.ok()) {
     assert(handles.size() == 1);
     // DBImpl is always holding the default handle.
@@ -21,11 +21,11 @@ Status TitanDB::Open(const TitanOptions& options, const std::string& dbname,
   return s;
 }
 
-Status TitanDB::Open(const TitanDBOptions& db_options,
+Status NubaseDB::Open(const NubaseDBOptions& db_options,
                      const std::string& dbname,
-                     const std::vector<TitanCFDescriptor>& descs,
-                     std::vector<ColumnFamilyHandle*>* handles, TitanDB** db) {
-  auto impl = new TitanDBImpl(db_options, dbname);
+                     const std::vector<NubaseCFDescriptor>& descs,
+                     std::vector<ColumnFamilyHandle*>* handles, NubaseDB** db) {
+  auto impl = new NubaseDBImpl(db_options, dbname);
   auto s = impl->Open(descs, handles);
   if (s.ok()) {
     *db = impl;

@@ -19,8 +19,8 @@ class BlobGCPickerTest : public testing::Test {
   BlobGCPickerTest() {}
   ~BlobGCPickerTest() {}
 
-  void NewBlobStorageAndPicker(const TitanDBOptions& titan_db_options,
-                               const TitanCFOptions& titan_cf_options) {
+  void NewBlobStorageAndPicker(const NubaseDBOptions& titan_db_options,
+                               const NubaseCFOptions& titan_cf_options) {
     auto blob_file_cache = std::make_shared<BlobFileCache>(
         titan_db_options, titan_cf_options, NewLRUCache(128), nullptr);
     blob_storage_.reset(new BlobStorage(titan_db_options, titan_cf_options, 0,
@@ -51,8 +51,8 @@ class BlobGCPickerTest : public testing::Test {
 };
 
 TEST_F(BlobGCPickerTest, Basic) {
-  TitanDBOptions titan_db_options;
-  TitanCFOptions titan_cf_options;
+  NubaseDBOptions titan_db_options;
+  NubaseCFOptions titan_cf_options;
   titan_cf_options.min_gc_batch_size = 0;
   NewBlobStorageAndPicker(titan_db_options, titan_cf_options);
   AddBlobFile(1U, 1U, 0U);
@@ -68,8 +68,8 @@ TEST_F(BlobGCPickerTest, Basic) {
 }
 
 TEST_F(BlobGCPickerTest, BeingGC) {
-  TitanDBOptions titan_db_options;
-  TitanCFOptions titan_cf_options;
+  NubaseDBOptions titan_db_options;
+  NubaseCFOptions titan_cf_options;
   titan_cf_options.min_gc_batch_size = 0;
   NewBlobStorageAndPicker(titan_db_options, titan_cf_options);
   AddBlobFile(1U, 1U, 0U, true);
@@ -88,8 +88,8 @@ TEST_F(BlobGCPickerTest, BeingGC) {
 }
 
 TEST_F(BlobGCPickerTest, TriggerNext) {
-  TitanDBOptions titan_db_options;
-  TitanCFOptions titan_cf_options;
+  NubaseDBOptions titan_db_options;
+  NubaseCFOptions titan_cf_options;
   titan_cf_options.max_gc_batch_size = 1 << 30;
   titan_cf_options.blob_file_target_size = 256 << 20;
   NewBlobStorageAndPicker(titan_db_options, titan_cf_options);
@@ -104,8 +104,8 @@ TEST_F(BlobGCPickerTest, TriggerNext) {
 }
 
 TEST_F(BlobGCPickerTest, PickFileAndTriggerNext) {
-  TitanDBOptions titan_db_options;
-  TitanCFOptions titan_cf_options;
+  NubaseDBOptions titan_db_options;
+  NubaseCFOptions titan_cf_options;
   titan_cf_options.max_gc_batch_size = 1 << 30;
   titan_cf_options.blob_file_target_size = 256 << 20;
   NewBlobStorageAndPicker(titan_db_options, titan_cf_options);
@@ -133,8 +133,8 @@ TEST_F(BlobGCPickerTest, PickFileAndTriggerNext) {
 }
 
 TEST_F(BlobGCPickerTest, ParallelPickGC) {
-  TitanDBOptions titan_db_options;
-  TitanCFOptions titan_cf_options;
+  NubaseDBOptions titan_db_options;
+  NubaseCFOptions titan_cf_options;
   titan_cf_options.max_gc_batch_size = 1 << 30;
   titan_cf_options.blob_file_target_size = 256 << 20;
   NewBlobStorageAndPicker(titan_db_options, titan_cf_options);

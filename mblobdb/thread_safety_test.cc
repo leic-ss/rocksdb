@@ -45,8 +45,8 @@ class TitanThreadSafetyTest : public testing::Test {
   ~TitanThreadSafetyTest() { Close(); }
 
   void Open() {
-    ASSERT_OK(TitanDB::Open(options_, dbname_, &db_));
-    db_impl_ = reinterpret_cast<TitanDBImpl*>(db_);
+    ASSERT_OK(NubaseDB::Open(options_, dbname_, &db_));
+    db_impl_ = reinterpret_cast<NubaseDBImpl*>(db_);
   }
 
   void Close() {
@@ -145,7 +145,7 @@ class TitanThreadSafetyTest : public testing::Test {
                              std::memory_order_relaxed);
     for (uint32_t col = 0; col < param_.num_column_family; col++) {
       std::string name = std::to_string(col);
-      TitanCFDescriptor desc(name, options_);
+      NubaseCFDescriptor desc(name, options_);
       ColumnFamilyHandle* handle = nullptr;
       ASSERT_OK(db_->CreateColumnFamily(desc, &handle));
       {
@@ -187,9 +187,9 @@ class TitanThreadSafetyTest : public testing::Test {
   port::Mutex mutex_;
   Env* env_{Env::Default()};
   std::string dbname_;
-  TitanOptions options_;
-  TitanDB* db_{nullptr};
-  TitanDBImpl* db_impl_{nullptr};
+  NubaseOptions options_;
+  NubaseDB* db_{nullptr};
+  NubaseDBImpl* db_impl_{nullptr};
 
   struct TestParam {
     TestParam() = default;

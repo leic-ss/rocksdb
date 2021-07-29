@@ -13,7 +13,7 @@ namespace mblobdb {
 class BlobGC {
  public:
   BlobGC(std::vector<BlobFileMeta*>&& blob_files,
-         TitanCFOptions&& _titan_cf_options, bool need_trigger_next, uint64_t scan_speed=0);
+         NubaseCFOptions&& _titan_cf_options, bool need_trigger_next, uint64_t scan_speed=0);
 
   // No copying allowed
   BlobGC(const BlobGC&) = delete;
@@ -23,7 +23,7 @@ class BlobGC {
 
   const std::vector<BlobFileMeta*>& inputs() { return inputs_; }
 
-  const TitanCFOptions& titan_cf_options() { return titan_cf_options_; }
+  const NubaseCFOptions& titan_cf_options() { return titan_cf_options_; }
 
   void SetColumnFamily(ColumnFamilyHandle* cfh);
 
@@ -44,7 +44,7 @@ class BlobGC {
  private:
   std::vector<BlobFileMeta*> inputs_;
   std::vector<BlobFileMeta*> outputs_;
-  TitanCFOptions titan_cf_options_;
+  NubaseCFOptions titan_cf_options_;
   ColumnFamilyHandle* cfh_{nullptr};
   // Whether need to trigger gc after this gc or not
   const bool trigger_next_;
