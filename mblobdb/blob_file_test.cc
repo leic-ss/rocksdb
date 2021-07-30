@@ -31,8 +31,8 @@ class BlobFileTest : public testing::Test {
 
   void TestBlobFilePrefetcher(NubaseOptions options) {
     options.dirname = dirname_;
-    NubaseDBOptions db_options(options);
-    NubaseCFOptions cf_options(options);
+    NublobDBOptions db_options(options);
+    NublobCFOptions cf_options(options);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     const int n = 100;
@@ -92,8 +92,8 @@ class BlobFileTest : public testing::Test {
 
   void TestBlobFileReader(NubaseOptions options) {
     options.dirname = dirname_;
-    NubaseDBOptions db_options(options);
-    NubaseCFOptions cf_options(options);
+    NublobDBOptions db_options(options);
+    NublobCFOptions cf_options(options);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     const int n = 100;

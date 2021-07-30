@@ -60,20 +60,20 @@ class TitanDBTest : public testing::Test {
 
   void Open() {
     if (cf_names_.empty()) {
-      ASSERT_OK(NubaseDB::Open(options_, dbname_, &db_));
-      db_impl_ = reinterpret_cast<NubaseDBImpl*>(db_);
+      ASSERT_OK(NublobDB::Open(options_, dbname_, &db_));
+      db_impl_ = reinterpret_cast<NublobDBImpl*>(db_);
     } else {
-      NubaseDBOptions db_options(options_);
-      NubaseCFOptions cf_options(options_);
+      NublobDBOptions db_options(options_);
+      NublobCFOptions cf_options(options_);
       cf_names_.clear();
       ASSERT_OK(DB::ListColumnFamilies(db_options, dbname_, &cf_names_));
-      std::vector<NubaseCFDescriptor> descs;
+      std::vector<NublobCFDescriptor> descs;
       for (auto& name : cf_names_) {
         descs.emplace_back(name, cf_options);
       }
       cf_handles_.clear();
-      ASSERT_OK(NubaseDB::Open(db_options, dbname_, descs, &cf_handles_, &db_));
-      db_impl_ = reinterpret_cast<NubaseDBImpl*>(db_);
+      ASSERT_OK(NublobDB::Open(db_options, dbname_, descs, &cf_handles_, &db_));
+      db_impl_ = reinterpret_cast<NublobDBImpl*>(db_);
     }
   }
 
@@ -93,7 +93,7 @@ class TitanDBTest : public testing::Test {
   }
 
   void AddCF(const std::string& name) {
-    NubaseCFDescriptor desc(name, options_);
+    NublobCFDescriptor desc(name, options_);
     ColumnFamilyHandle* handle = nullptr;
     ASSERT_OK(db_->CreateColumnFamily(desc, &handle));
     cf_names_.emplace_back(name);
@@ -260,8 +260,8 @@ class TitanDBTest : public testing::Test {
     options.table_factory.reset(
         NewBlockBasedTableFactory(BlockBasedTableOptions()));
     auto* original_table_factory = options.table_factory.get();
-    NubaseDB* db;
-    ASSERT_OK(NubaseDB::Open(NubaseOptions(options), dbname_, &db));
+    NublobDB* db;
+    ASSERT_OK(NublobDB::Open(NubaseOptions(options), dbname_, &db));
     auto cf_options = db->GetOptions(db->DefaultColumnFamily());
     auto db_options = db->GetDBOptions();
     ImmutableCFOptions immu_cf_options(ImmutableDBOptions(db_options),
@@ -308,8 +308,8 @@ class TitanDBTest : public testing::Test {
   Env* env_{Env::Default()};
   std::string dbname_;
   NubaseOptions options_;
-  NubaseDB* db_{nullptr};
-  NubaseDBImpl* db_impl_{nullptr};
+  NublobDB* db_{nullptr};
+  NublobDBImpl* db_impl_{nullptr};
   std::vector<std::string> cf_names_;
   std::vector<ColumnFamilyHandle*> cf_handles_;
 };
@@ -318,15 +318,15 @@ TEST_F(TitanDBTest, Open) {
   std::atomic<bool> checked_before_initialized{false};
   std::atomic<bool> background_job_started{false};
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::OnFlushCompleted:Begin",
+      "NublobDBImpl::OnFlushCompleted:Begin",
       [&](void*) { background_job_started = true; });
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::OnCompactionCompleted:Begin",
+      "NublobDBImpl::OnCompactionCompleted:Begin",
       [&](void*) { background_job_started = true; });
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::OpenImpl:BeforeInitialized", [&](void* arg) {
+      "NublobDBImpl::OpenImpl:BeforeInitialized", [&](void* arg) {
         checked_before_initialized = true;
-        NubaseDBImpl* db = reinterpret_cast<NubaseDBImpl*>(arg);
+        NublobDBImpl* db = reinterpret_cast<NublobDBImpl*>(arg);
         // Try to trigger flush and compaction. Listeners should not be call.
         ASSERT_OK(db->Put(WriteOptions(), "k1", "v1"));
         ASSERT_OK(db->Flush(FlushOptions()));
@@ -427,28 +427,28 @@ TEST_F(TitanDBTest, GetProperty) {
   }
   Flush();
   uint64_t value;
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumLiveBlobFile, &value));
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumLiveBlobFile, &value));
   ASSERT_EQ(value, 1);
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE0File, &value));
+      GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE0File, &value));
   ASSERT_EQ(value, 1);
 
   Reopen();
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumLiveBlobFile, &value));
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumLiveBlobFile, &value));
   ASSERT_EQ(value, 1);
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE0File, &value));
+      GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE0File, &value));
   ASSERT_EQ(value, 1);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE20File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE20File,
                              &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE50File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE50File,
                              &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE80File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE80File,
                              &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE100File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE100File,
                              &value));
   ASSERT_EQ(value, 0);
 
@@ -459,17 +459,17 @@ TEST_F(TitanDBTest, GetProperty) {
   CompactAll();
 
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE0File, &value));
+      GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE0File, &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE50File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE50File,
                              &value));
   ASSERT_EQ(value, 1);
 
   Reopen();
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE0File, &value));
+      GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE0File, &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE50File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE50File,
                              &value));
   ASSERT_EQ(value, 1);
 
@@ -480,16 +480,16 @@ TEST_F(TitanDBTest, GetProperty) {
   CompactAll();
 
   db_impl_->TEST_WaitForBackgroundGC();
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumLiveBlobFile, &value));
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumLiveBlobFile, &value));
   ASSERT_EQ(value, 0);
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumObsoleteBlobFile, &value));
+      GetIntProperty(NublobDB::Properties::kNumObsoleteBlobFile, &value));
   ASSERT_EQ(value, 1);
   ASSERT_OK(db_impl_->TEST_PurgeObsoleteFiles());
   ASSERT_TRUE(
-      GetIntProperty(NubaseDB::Properties::kNumObsoleteBlobFile, &value));
+      GetIntProperty(NublobDB::Properties::kNumObsoleteBlobFile, &value));
   ASSERT_EQ(value, 0);
-  ASSERT_TRUE(GetIntProperty(NubaseDB::Properties::kNumDiscardableRatioLE50File,
+  ASSERT_TRUE(GetIntProperty(NublobDB::Properties::kNumDiscardableRatioLE50File,
                              &value));
   ASSERT_EQ(value, 0);
 }
@@ -976,7 +976,7 @@ TEST_F(TitanDBTest, SetOptions) {
   ASSERT_OK(db_->SetDBOptions(opts));
   titan_options = db_->GetTitanOptions();
   ASSERT_EQ(15, titan_options.max_background_jobs);
-  NubaseDBOptions titan_db_options = db_->GetTitanDBOptions();
+  NublobDBOptions titan_db_options = db_->GetTitanDBOptions();
   ASSERT_EQ(15, titan_db_options.max_background_jobs);
 }
 
@@ -1158,17 +1158,17 @@ TEST_F(TitanDBTest, DropCFWhileGC) {
   Open();
 
   // Create CF.
-  std::vector<NubaseCFDescriptor> descs = {{"new_cf", options_}};
+  std::vector<NublobCFDescriptor> descs = {{"new_cf", options_}};
   std::vector<ColumnFamilyHandle*> handles;
   ASSERT_OK(db_->CreateColumnFamilies(descs, &handles));
   ASSERT_EQ(1, handles.size());
   auto* cfh = handles[0];
 
   SyncPoint::GetInstance()->LoadDependency(
-      {{"NubaseDBImpl::BackgroundCallGC:BeforeBackgroundGC",
-        "NubaseDBImpl::DropColumnFamilies:Begin"}});
+      {{"NublobDBImpl::BackgroundCallGC:BeforeBackgroundGC",
+        "NublobDBImpl::DropColumnFamilies:Begin"}});
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::DropColumnFamilies:BeforeBaseDBDropCF",
+      "NublobDBImpl::DropColumnFamilies:BeforeBaseDBDropCF",
       [&](void*) { ASSERT_EQ(0, db_impl_->TEST_bg_gc_running()); });
   SyncPoint::GetInstance()->EnableProcessing();
 
@@ -1196,7 +1196,7 @@ TEST_F(TitanDBTest, GCAfterDropCF) {
   Open();
 
   // Create CF.
-  std::vector<NubaseCFDescriptor> descs = {{"new_cf", options_}};
+  std::vector<NublobCFDescriptor> descs = {{"new_cf", options_}};
   std::vector<ColumnFamilyHandle*> handles;
   ASSERT_OK(db_->CreateColumnFamilies(descs, &handles));
   ASSERT_EQ(1, handles.size());
@@ -1206,11 +1206,11 @@ TEST_F(TitanDBTest, GCAfterDropCF) {
 
   SyncPoint::GetInstance()->LoadDependency(
       {{"TitanDBTest::GCAfterDropCF:AfterDropCF",
-        "NubaseDBImpl::BackgroundCallGC:BeforeGCRunning"},
-       {"NubaseDBImpl::BackgroundGC:Finish",
+        "NublobDBImpl::BackgroundCallGC:BeforeGCRunning"},
+       {"NublobDBImpl::BackgroundGC:Finish",
         "TitanDBTest::GCAfterDropCF:WaitGC"}});
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::BackgroundGC:CFDropped",
+      "NublobDBImpl::BackgroundGC:CFDropped",
       [&](void*) { skip_dropped_cf_count++; });
   SyncPoint::GetInstance()->EnableProcessing();
 
@@ -1257,7 +1257,7 @@ TEST_F(TitanDBTest, GCBeforeFlushCommit) {
     db_mutex->Lock();
   });
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::OnFlushCompleted:Finished", [&](void*) {
+      "NublobDBImpl::OnFlushCompleted:Finished", [&](void*) {
         MutexLock l(&mu);
         flush_completed++;
         cv.SignalAll();
@@ -1361,8 +1361,8 @@ TEST_F(TitanDBTest, GCAfterReopen) {
   // Sync point to verify GC stat recovered after reopen.
   std::atomic<int> num_gc_job{0};
   SyncPoint::GetInstance()->SetCallBack(
-      "NubaseDBImpl::OpenImpl:BeforeInitialized", [&](void* arg) {
-        NubaseDBImpl* db_impl = reinterpret_cast<NubaseDBImpl*>(arg);
+      "NublobDBImpl::OpenImpl:BeforeInitialized", [&](void* arg) {
+        NublobDBImpl* db_impl = reinterpret_cast<NublobDBImpl*>(arg);
         blob_storage =
             db_impl->TEST_GetBlobStorage(db_impl->DefaultColumnFamily());
         ASSERT_TRUE(blob_storage != nullptr);
@@ -1372,7 +1372,7 @@ TEST_F(TitanDBTest, GCAfterReopen) {
         ASSERT_TRUE(file != nullptr);
         ASSERT_TRUE(abs(file->GetDiscardableRatio() - 0.5) < 0.01);
       });
-  SyncPoint::GetInstance()->SetCallBack("NubaseDBImpl::BackgroundGC:Finish",
+  SyncPoint::GetInstance()->SetCallBack("NublobDBImpl::BackgroundGC:Finish",
                                         [&](void*) { num_gc_job++; });
   SyncPoint::GetInstance()->EnableProcessing();
 

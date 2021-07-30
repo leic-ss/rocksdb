@@ -17,7 +17,7 @@ class TitanOptionsTest : public testing::Test {
     assert(s.ok());
   }
 
-  Status Open() { return NubaseDB::Open(titan_options_, db_name_, &titan_db); }
+  Status Open() { return NublobDB::Open(titan_options_, db_name_, &titan_db); }
 
   Status DeleteDir(const std::string& dirname) {
     Status s;
@@ -58,7 +58,7 @@ class TitanOptionsTest : public testing::Test {
  protected:
   std::string db_name_;
   NubaseOptions titan_options_;
-  NubaseDB* titan_db = nullptr;
+  NublobDB* titan_db = nullptr;
 };
 
 TEST_F(TitanOptionsTest, LevelMerge) {

@@ -49,8 +49,8 @@ class TitanGCStatsTest : public testing::Test {
   }
 
   Status Open() {
-    Status s = NubaseDB::Open(options_, dbname_, &db_);
-    db_impl_ = reinterpret_cast<NubaseDBImpl*>(db_);
+    Status s = NublobDB::Open(options_, dbname_, &db_);
+    db_impl_ = reinterpret_cast<NublobDBImpl*>(db_);
     return s;
   }
 
@@ -136,8 +136,8 @@ class TitanGCStatsTest : public testing::Test {
   Env* env_ = Env::Default();
   std::string dbname_;
   NubaseOptions options_;
-  NubaseDB* db_ = nullptr;
-  NubaseDBImpl* db_impl_ = nullptr;
+  NublobDB* db_ = nullptr;
+  NublobDBImpl* db_impl_ = nullptr;
 };
 
 TEST_F(TitanGCStatsTest, Flush) {

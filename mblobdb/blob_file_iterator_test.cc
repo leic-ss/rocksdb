@@ -52,8 +52,8 @@ class BlobFileIteratorTest : public testing::Test {
   }
 
   void NewBuilder() {
-    NubaseDBOptions db_options(titan_options_);
-    NubaseCFOptions cf_options(titan_options_);
+    NublobDBOptions db_options(titan_options_);
+    NublobCFOptions cf_options(titan_options_);
     BlobFileCache cache(db_options, cf_options, {NewLRUCache(128)}, nullptr);
 
     {
@@ -86,7 +86,7 @@ class BlobFileIteratorTest : public testing::Test {
     NewBlobFileReader(file_number_, 0, titan_options_, env_options_, env_,
                       &readable_file_);
     blob_file_iterator_.reset(new BlobFileIterator{
-        std::move(readable_file_), file_number_, file_size, NubaseCFOptions()});
+        std::move(readable_file_), file_number_, file_size, NublobCFOptions()});
   }
 
   void TestBlobFileIterator() {
@@ -190,7 +190,7 @@ TEST_F(BlobFileIteratorTest, MergeIterator) {
                         &readable_file_);
       iters.emplace_back(std::unique_ptr<BlobFileIterator>(
           new BlobFileIterator{std::move(readable_file_), file_number_,
-                               file_size, NubaseCFOptions()}));
+                               file_size, NublobCFOptions()}));
       file_number_ = Random::GetTLSInstance()->Next();
       file_name_ = BlobFileName(dirname_, file_number_);
       NewBuilder();
@@ -203,7 +203,7 @@ TEST_F(BlobFileIteratorTest, MergeIterator) {
   NewBlobFileReader(file_number_, 0, titan_options_, env_options_, env_,
                     &readable_file_);
   iters.emplace_back(std::unique_ptr<BlobFileIterator>(new BlobFileIterator{
-      std::move(readable_file_), file_number_, file_size, NubaseCFOptions()}));
+      std::move(readable_file_), file_number_, file_size, NublobCFOptions()}));
   BlobFileMergeIterator iter(std::move(iters), titan_options_.comparator);
 
   iter.SeekToFirst();

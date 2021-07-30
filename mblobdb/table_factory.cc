@@ -6,7 +6,7 @@
 namespace rocksdb {
 namespace mblobdb {
 
-Status NubaseTableFactory::NewTableReader(
+Status NublobTableFactory::NewTableReader(
     const TableReaderOptions& options,
     std::unique_ptr<RandomAccessFileReader>&& file, uint64_t file_size,
     std::unique_ptr<TableReader>* result,
@@ -16,7 +16,7 @@ Status NubaseTableFactory::NewTableReader(
                                        prefetch_index_and_filter_in_cache);
 }
 
-TableBuilder* NubaseTableFactory::NewTableBuilder(
+TableBuilder* NublobTableFactory::NewTableBuilder(
     const TableBuilderOptions& options, uint32_t column_family_id,
     WritableFileWriter* file) const {
   std::unique_ptr<TableBuilder> base_builder(
@@ -24,7 +24,7 @@ TableBuilder* NubaseTableFactory::NewTableBuilder(
   if (!db_impl_->initialized()) {
     return base_builder.release();
   }
-  NubaseCFOptions cf_options = cf_options_;
+  NublobCFOptions cf_options = cf_options_;
   cf_options.blob_run_mode = blob_run_mode_.load();
   std::weak_ptr<BlobStorage> blob_storage;
 
@@ -37,13 +37,13 @@ TableBuilder* NubaseTableFactory::NewTableBuilder(
     blob_storage = blob_file_set_->GetBlobStorage(column_family_id);
   }
 
-  return new TitanTableBuilder(
+  return new NublobTableBuilder(
       column_family_id, db_options_, cf_options, std::move(base_builder),
       blob_manager_, blob_storage, stats_,
       std::max(1, num_levels - 2) /* merge level */, options.level);
 }
 
-std::string NubaseTableFactory::GetPrintableTableOptions() const {
+std::string NublobTableFactory::GetPrintableTableOptions() const {
   assert(blob_run_mode_to_string.count(blob_run_mode_.load()) > 0);
   return base_factory_->GetPrintableTableOptions() + "  blob_run_mode: " +
          blob_run_mode_to_string.at(blob_run_mode_.load());

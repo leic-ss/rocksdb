@@ -10,7 +10,7 @@
 namespace rocksdb {
 namespace mblobdb {
 
-void TitanTableBuilder::Add(const Slice& key, const Slice& value) {
+void NublobTableBuilder::Add(const Slice& key, const Slice& value) {
   if (!ok()) return;
 
   ParsedInternalKey ikey;
@@ -110,7 +110,7 @@ void TitanTableBuilder::Add(const Slice& key, const Slice& value) {
   }
 }
 
-void TitanTableBuilder::AddBlob(const Slice& key, const Slice& value,
+void NublobTableBuilder::AddBlob(const Slice& key, const Slice& value,
                                 std::string* index_value) {
   if (!ok()) return;
   StopWatch write_sw(db_options_.env, statistics(stats_),
@@ -155,7 +155,7 @@ void TitanTableBuilder::AddBlob(const Slice& key, const Slice& value,
   }
 }
 
-void TitanTableBuilder::FinishBlobFile() {
+void NublobTableBuilder::FinishBlobFile() {
   if (blob_builder_) {
     uint64_t prev_bytes_read = 0;
     uint64_t prev_bytes_written = 0;
@@ -185,7 +185,7 @@ void TitanTableBuilder::FinishBlobFile() {
   }
 }
 
-Status TitanTableBuilder::status() const {
+Status NublobTableBuilder::status() const {
   Status s = status_;
   if (s.ok()) {
     s = base_builder_->status();
@@ -196,7 +196,7 @@ Status TitanTableBuilder::status() const {
   return s;
 }
 
-Status TitanTableBuilder::Finish() {
+Status NublobTableBuilder::Finish() {
   base_builder_->Finish();
   FinishBlobFile();
   status_ = blob_manager_->BatchFinishFiles(cf_id_, finished_blobs_);
@@ -214,7 +214,7 @@ Status TitanTableBuilder::Finish() {
   return status();
 }
 
-void TitanTableBuilder::Abandon() {
+void NublobTableBuilder::Abandon() {
   base_builder_->Abandon();
   if (blob_builder_) {
     ROCKS_LOG_INFO(db_options_.info_log,
@@ -226,23 +226,23 @@ void TitanTableBuilder::Abandon() {
   }
 }
 
-uint64_t TitanTableBuilder::NumEntries() const {
+uint64_t NublobTableBuilder::NumEntries() const {
   return base_builder_->NumEntries();
 }
 
-uint64_t TitanTableBuilder::FileSize() const {
+uint64_t NublobTableBuilder::FileSize() const {
   return base_builder_->FileSize();
 }
 
-bool TitanTableBuilder::NeedCompact() const {
+bool NublobTableBuilder::NeedCompact() const {
   return base_builder_->NeedCompact();
 }
 
-TableProperties TitanTableBuilder::GetTableProperties() const {
+TableProperties NublobTableBuilder::GetTableProperties() const {
   return base_builder_->GetTableProperties();
 }
 
-bool TitanTableBuilder::ShouldMerge(
+bool NublobTableBuilder::ShouldMerge(
     const std::shared_ptr<rocksdb::mblobdb::BlobFileMeta>& file) {
   assert(cf_options_.level_merge);
   // Values in blob file should be merged if
@@ -254,7 +254,7 @@ bool TitanTableBuilder::ShouldMerge(
           file->file_state() == BlobFileMeta::FileState::kToMerge);
 }
 
-void TitanTableBuilder::UpdateInternalOpStats() {
+void NublobTableBuilder::UpdateInternalOpStats() {
   if (stats_ == nullptr) {
     return;
   }
@@ -282,7 +282,7 @@ void TitanTableBuilder::UpdateInternalOpStats() {
   }
 }
 
-Status TitanTableBuilder::GetBlobRecord(const BlobIndex& index,
+Status NublobTableBuilder::GetBlobRecord(const BlobIndex& index,
                                         BlobRecord* record,
                                         PinnableSlice* buffer) {
   Status s;

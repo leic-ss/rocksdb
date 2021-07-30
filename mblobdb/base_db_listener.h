@@ -5,11 +5,11 @@
 namespace rocksdb {
 namespace mblobdb {
 
-class NubaseDBImpl;
+class NublobDBImpl;
 
 class BaseDbListener final : public EventListener {
  public:
-  BaseDbListener(NubaseDBImpl* db);
+  BaseDbListener(NublobDBImpl* db);
   ~BaseDbListener();
 
   void OnFlushCompleted(DB* db, const FlushJobInfo& flush_job_info) override;
@@ -18,7 +18,7 @@ class BaseDbListener final : public EventListener {
       DB* db, const CompactionJobInfo& compaction_job_info) override;
 
  private:
-  rocksdb::mblobdb::NubaseDBImpl* db_impl_;
+  rocksdb::mblobdb::NublobDBImpl* db_impl_;
 };
 
 }  // namespace mblobdb

@@ -5,14 +5,14 @@
 namespace rocksdb {
 namespace mblobdb {
 
-Status NubaseDB::Open(const NubaseOptions& options, const std::string& dbname,
-                     NubaseDB** db) {
-  NubaseDBOptions db_options(options);
-  NubaseCFOptions cf_options(options);
-  std::vector<NubaseCFDescriptor> descs;
+Status NublobDB::Open(const NubaseOptions& options, const std::string& dbname,
+                     NublobDB** db) {
+  NublobDBOptions db_options(options);
+  NublobCFOptions cf_options(options);
+  std::vector<NublobCFDescriptor> descs;
   descs.emplace_back(kDefaultColumnFamilyName, cf_options);
   std::vector<ColumnFamilyHandle*> handles;
-  Status s = NubaseDB::Open(db_options, dbname, descs, &handles, db);
+  Status s = NublobDB::Open(db_options, dbname, descs, &handles, db);
   if (s.ok()) {
     assert(handles.size() == 1);
     // DBImpl is always holding the default handle.
@@ -21,11 +21,11 @@ Status NubaseDB::Open(const NubaseOptions& options, const std::string& dbname,
   return s;
 }
 
-Status NubaseDB::Open(const NubaseDBOptions& db_options,
+Status NublobDB::Open(const NublobDBOptions& db_options,
                      const std::string& dbname,
-                     const std::vector<NubaseCFDescriptor>& descs,
-                     std::vector<ColumnFamilyHandle*>* handles, NubaseDB** db) {
-  auto impl = new NubaseDBImpl(db_options, dbname);
+                     const std::vector<NublobCFDescriptor>& descs,
+                     std::vector<ColumnFamilyHandle*>* handles, NublobDB** db) {
+  auto impl = new NublobDBImpl(db_options, dbname);
   auto s = impl->Open(descs, handles);
   if (s.ok()) {
     *db = impl;

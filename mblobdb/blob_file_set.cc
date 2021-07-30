@@ -9,7 +9,7 @@ namespace mblobdb {
 
 const size_t kMaxFileCacheSize = 1024 * 1024;
 
-BlobFileSet::BlobFileSet(const NubaseDBOptions& options, TitanStats* stats)
+BlobFileSet::BlobFileSet(const NublobDBOptions& options, TitanStats* stats)
     : dirname_(options.dirname),
       env_(options.env),
       env_options_(options),
@@ -23,7 +23,7 @@ BlobFileSet::BlobFileSet(const NubaseDBOptions& options, TitanStats* stats)
 }
 
 Status BlobFileSet::Open(
-    const std::map<uint32_t, NubaseCFOptions>& column_families) {
+    const std::map<uint32_t, NublobCFOptions>& column_families) {
   // Sets up initial column families.
   AddColumnFamilies(column_families);
 
@@ -224,7 +224,7 @@ Status BlobFileSet::LogAndApply(VersionEdit& edit) {
 }
 
 void BlobFileSet::AddColumnFamilies(
-    const std::map<uint32_t, NubaseCFOptions>& column_families) {
+    const std::map<uint32_t, NublobCFOptions>& column_families) {
   for (auto& cf : column_families) {
     auto file_cache = std::make_shared<BlobFileCache>(db_options_, cf.second,
                                                       file_cache_, stats_);

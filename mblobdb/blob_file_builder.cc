@@ -3,8 +3,8 @@
 namespace rocksdb {
 namespace mblobdb {
 
-BlobFileBuilder::BlobFileBuilder(const NubaseDBOptions& db_options,
-                                 const NubaseCFOptions& cf_options,
+BlobFileBuilder::BlobFileBuilder(const NublobDBOptions& db_options,
+                                 const NublobCFOptions& cf_options,
                                  WritableFileWriter* file)
     : cf_options_(cf_options),
       file_(file),

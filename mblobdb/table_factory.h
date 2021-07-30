@@ -11,12 +11,12 @@
 namespace rocksdb {
 namespace mblobdb {
 
-class NubaseDBImpl;
+class NublobDBImpl;
 
-class NubaseTableFactory : public TableFactory {
+class NublobTableFactory : public TableFactory {
  public:
-  NubaseTableFactory(const NubaseDBOptions& db_options,
-                    const NubaseCFOptions& cf_options, NubaseDBImpl* db_impl,
+  NublobTableFactory(const NublobDBOptions& db_options,
+                    const NublobCFOptions& cf_options, NublobDBImpl* db_impl,
                     std::shared_ptr<BlobFileManager> blob_manager,
                     port::Mutex* db_mutex, BlobFileSet* blob_file_set,
                     TitanStats* stats)
@@ -30,7 +30,7 @@ class NubaseTableFactory : public TableFactory {
         blob_file_set_(blob_file_set),
         stats_(stats) {}
 
-  const char* Name() const override { return "NubaseTable"; }
+  const char* Name() const override { return "NublobTable"; }
 
   Status NewTableReader(
       const TableReaderOptions& options,
@@ -65,11 +65,11 @@ class NubaseTableFactory : public TableFactory {
   }
 
  private:
-  const NubaseDBOptions db_options_;
-  const NubaseCFOptions cf_options_;
+  const NublobDBOptions db_options_;
+  const NublobCFOptions cf_options_;
   std::atomic<TitanBlobRunMode> blob_run_mode_;
   std::shared_ptr<TableFactory> base_factory_;
-  NubaseDBImpl* db_impl_;
+  NublobDBImpl* db_impl_;
   std::shared_ptr<BlobFileManager> blob_manager_;
   port::Mutex* db_mutex_;
   BlobFileSet* blob_file_set_;

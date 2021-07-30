@@ -15,7 +15,7 @@ namespace rocksdb {
 namespace mblobdb {
 
 Status NewBlobFileReader(uint64_t file_number, uint64_t readahead_size,
-                         const NubaseDBOptions& db_options,
+                         const NublobDBOptions& db_options,
                          const EnvOptions& env_options, Env* env,
                          std::unique_ptr<RandomAccessFileReader>* result);
 
@@ -23,7 +23,7 @@ class BlobFileReader {
  public:
   // Opens a blob file and read the necessary metadata from it.
   // If successful, sets "*result" to the newly opened file reader.
-  static Status Open(const NubaseCFOptions& options,
+  static Status Open(const NublobCFOptions& options,
                      std::unique_ptr<RandomAccessFileReader> file,
                      uint64_t file_size,
                      std::unique_ptr<BlobFileReader>* result,
@@ -38,14 +38,14 @@ class BlobFileReader {
  private:
   friend class BlobFilePrefetcher;
 
-  BlobFileReader(const NubaseCFOptions& options,
+  BlobFileReader(const NublobCFOptions& options,
                  std::unique_ptr<RandomAccessFileReader> file,
                  TitanStats* stats);
 
   Status ReadRecord(const BlobHandle& handle, BlobRecord* record,
                     OwnedSlice* buffer);
 
-  NubaseCFOptions options_;
+  NublobCFOptions options_;
   std::unique_ptr<RandomAccessFileReader> file_;
 
   std::shared_ptr<Cache> cache_;

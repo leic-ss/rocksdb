@@ -24,14 +24,14 @@ namespace mblobdb {
 // It records blob file meta in terms of column family.
 class BlobFileSet {
  public:
-  explicit BlobFileSet(const NubaseDBOptions& options, TitanStats* stats);
+  explicit BlobFileSet(const NublobDBOptions& options, TitanStats* stats);
 
   // Sets up the storage specified in "options.dirname".
   // If the manifest doesn't exist, it will create one.
   // If the manifest exists, it will recover from the latest one.
   // It is a corruption if the persistent storage contains data
   // outside of the provided column families.
-  Status Open(const std::map<uint32_t, NubaseCFOptions>& column_families);
+  Status Open(const std::map<uint32_t, NublobCFOptions>& column_families);
 
   // Applies *edit and saved to the manifest.
   // REQUIRES: mutex is held
@@ -40,7 +40,7 @@ class BlobFileSet {
   // Adds some column families with the specified options.
   // REQUIRES: mutex is held
   void AddColumnFamilies(
-      const std::map<uint32_t, NubaseCFOptions>& column_families);
+      const std::map<uint32_t, NublobCFOptions>& column_families);
 
   // Drops some column families. The obsolete files will be deleted in
   // background when they will not be accessed anymore.
@@ -93,7 +93,7 @@ class BlobFileSet {
   std::string dirname_;
   Env* env_;
   EnvOptions env_options_;
-  NubaseDBOptions db_options_;
+  NublobDBOptions db_options_;
   std::shared_ptr<Cache> file_cache_;
 
   TitanStats* stats_;

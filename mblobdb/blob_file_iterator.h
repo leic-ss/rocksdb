@@ -28,7 +28,7 @@ class BlobFileIterator {
 
   BlobFileIterator(std::unique_ptr<RandomAccessFileReader>&& file,
                    uint64_t file_name, uint64_t file_size,
-                   const NubaseCFOptions& titan_cf_options);
+                   const NublobCFOptions& titan_cf_options);
   ~BlobFileIterator();
 
   bool Init();
@@ -55,7 +55,7 @@ class BlobFileIterator {
   const std::unique_ptr<RandomAccessFileReader> file_;
   const uint64_t file_number_;
   const uint64_t file_size_;
-  NubaseCFOptions titan_cf_options_;
+  NublobCFOptions titan_cf_options_;
 
   bool init_{false};
   uint64_t end_of_blob_record_{0};

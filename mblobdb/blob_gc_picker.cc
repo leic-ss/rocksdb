@@ -9,8 +9,8 @@
 namespace rocksdb {
 namespace mblobdb {
 
-BasicBlobGCPicker::BasicBlobGCPicker(NubaseDBOptions db_options,
-                                     NubaseCFOptions cf_options,
+BasicBlobGCPicker::BasicBlobGCPicker(NublobDBOptions db_options,
+                                     NublobCFOptions cf_options,
                                      TitanStats* stats,
                                      uint64_t scan_speed)
     : db_options_(db_options), cf_options_(cf_options), stats_(stats), max_scan_speed(scan_speed) {}

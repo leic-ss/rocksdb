@@ -20,23 +20,23 @@ struct TitanColumnFamilyInfo {
   const ImmutableTitanCFOptions immutable_cf_options;
   MutableTitanCFOptions mutable_cf_options;
   std::shared_ptr<TableFactory> base_table_factory;
-  std::shared_ptr<NubaseTableFactory> titan_table_factory;
+  std::shared_ptr<NublobTableFactory> titan_table_factory;
 };
 
-class NubaseDBImpl : public NubaseDB {
+class NublobDBImpl : public NublobDB {
  public:
-  NubaseDBImpl(const NubaseDBOptions& options, const std::string& dbname);
+  NublobDBImpl(const NublobDBOptions& options, const std::string& dbname);
 
-  ~NubaseDBImpl();
+  ~NublobDBImpl();
 
-  Status Open(const std::vector<NubaseCFDescriptor>& descs,
+  Status Open(const std::vector<NublobCFDescriptor>& descs,
               std::vector<ColumnFamilyHandle*>* handles);
 
   Status Close() override;
 
-  using NubaseDB::CreateColumnFamilies;
+  using NublobDB::CreateColumnFamilies;
   Status CreateColumnFamilies(
-      const std::vector<NubaseCFDescriptor>& descs,
+      const std::vector<NublobCFDescriptor>& descs,
       std::vector<ColumnFamilyHandle*>* handles) override;
 
   Status DropColumnFamilies(
@@ -44,7 +44,7 @@ class NubaseDBImpl : public NubaseDB {
 
   Status DestroyColumnFamilyHandle(ColumnFamilyHandle* column_family) override;
 
-  using NubaseDB::CompactFiles;
+  using NublobDB::CompactFiles;
   Status CompactFiles(
       const CompactionOptions& compact_options,
       ColumnFamilyHandle* column_family,
@@ -55,50 +55,50 @@ class NubaseDBImpl : public NubaseDB {
 
   Status CloseImpl();
 
-  using NubaseDB::Put;
+  using NublobDB::Put;
   Status Put(const WriteOptions& options, ColumnFamilyHandle* column_family,
              const Slice& key, const Slice& value) override;
 
-  using NubaseDB::Write;
+  using NublobDB::Write;
   Status Write(const WriteOptions& options, WriteBatch* updates) override;
 
-  // using NubaseDB::MultiBatchWrite;
+  // using NublobDB::MultiBatchWrite;
   // Status MultiBatchWrite(const WriteOptions& options,
   //                        std::vector<WriteBatch*>&& updates) override;
 
-  using NubaseDB::Delete;
+  using NublobDB::Delete;
   Status Delete(const WriteOptions& options, ColumnFamilyHandle* column_family,
                 const Slice& key) override;
 
-  using NubaseDB::IngestExternalFile;
+  using NublobDB::IngestExternalFile;
   Status IngestExternalFile(ColumnFamilyHandle* column_family,
                             const std::vector<std::string>& external_files,
                             const IngestExternalFileOptions& options) override;
 
-  using NubaseDB::CompactRange;
+  using NublobDB::CompactRange;
   Status CompactRange(const CompactRangeOptions& options,
                       ColumnFamilyHandle* column_family, const Slice* begin,
                       const Slice* end) override;
 
-  using NubaseDB::Flush;
+  using NublobDB::Flush;
   Status Flush(const FlushOptions& fopts,
                ColumnFamilyHandle* column_family) override;
 
-  using NubaseDB::Get;
+  using NublobDB::Get;
   Status Get(const ReadOptions& options, ColumnFamilyHandle* handle,
              const Slice& key, PinnableSlice* value) override;
 
-  using NubaseDB::MultiGet;
+  using NublobDB::MultiGet;
   std::vector<Status> MultiGet(const ReadOptions& options,
                                const std::vector<ColumnFamilyHandle*>& handles,
                                const std::vector<Slice>& keys,
                                std::vector<std::string>* values) override;
 
-  using NubaseDB::NewIterator;
+  using NublobDB::NewIterator;
   Iterator* NewIterator(const TitanReadOptions& options,
                         ColumnFamilyHandle* handle) override;
 
-  using NubaseDB::NewIterators;
+  using NublobDB::NewIterators;
   Status NewIterators(const TitanReadOptions& options,
                       const std::vector<ColumnFamilyHandle*>& handles,
                       std::vector<Iterator*>* iterators) override;
@@ -111,26 +111,26 @@ class NubaseDBImpl : public NubaseDB {
                              const RangePtr* ranges, size_t n,
                              bool include_end = true) override;
 
-  using NubaseDB::GetOptions;
+  using NublobDB::GetOptions;
   Options GetOptions(ColumnFamilyHandle* column_family) const override;
 
-  using NubaseDB::SetOptions;
+  using NublobDB::SetOptions;
   Status SetOptions(
       ColumnFamilyHandle* column_family,
       const std::unordered_map<std::string, std::string>& new_options) override;
 
-  using NubaseDB::GetTitanOptions;
+  using NublobDB::GetTitanOptions;
   NubaseOptions GetTitanOptions(
       ColumnFamilyHandle* column_family) const override;
 
-  using NubaseDB::GetTitanDBOptions;
-  NubaseDBOptions GetTitanDBOptions() const override;
+  using NublobDB::GetTitanDBOptions;
+  NublobDBOptions GetTitanDBOptions() const override;
 
-  using NubaseDB::GetProperty;
+  using NublobDB::GetProperty;
   bool GetProperty(ColumnFamilyHandle* column_family, const Slice& property,
                    std::string* value) override;
 
-  using NubaseDB::GetIntProperty;
+  using NublobDB::GetIntProperty;
   bool GetIntProperty(ColumnFamilyHandle* column_family, const Slice& property,
                       uint64_t* value) override;
 
@@ -175,12 +175,12 @@ class NubaseDBImpl : public NubaseDB {
   friend class TitanDBTest;
   friend class TitanThreadSafetyTest;
 
-  Status OpenImpl(const std::vector<NubaseCFDescriptor>& descs,
+  Status OpenImpl(const std::vector<NublobCFDescriptor>& descs,
                   std::vector<ColumnFamilyHandle*>* handles);
 
   Status ValidateOptions(
-      const NubaseDBOptions& options,
-      const std::vector<NubaseCFDescriptor>& column_families) const;
+      const NublobDBOptions& options,
+      const std::vector<NublobCFDescriptor>& column_families) const;
 
   Status GetImpl(const ReadOptions& options, ColumnFamilyHandle* handle,
                  const Slice& key, PinnableSlice* value);
@@ -279,7 +279,7 @@ class NubaseDBImpl : public NubaseDB {
   Env* env_;
   EnvOptions env_options_;
   DBImpl* db_impl_;
-  NubaseDBOptions db_options_;
+  NublobDBOptions db_options_;
   std::unique_ptr<Directory> directory_;
   std::shared_ptr<BlobIndexMergeOperator> shared_merge_operator_;
 

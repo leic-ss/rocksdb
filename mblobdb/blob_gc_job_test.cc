@@ -25,9 +25,9 @@ std::string GenValue(int i) {
 class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
  public:
   std::string dbname_;
-  NubaseDB* db_;
+  NublobDB* db_;
   DBImpl* base_db_;
-  NubaseDBImpl* tdb_;
+  NublobDBImpl* tdb_;
   BlobFileSet* blob_file_set_;
   NubaseOptions options_;
   port::Mutex* mutex_;
@@ -80,8 +80,8 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
   }
 
   void Open() {
-    ASSERT_OK(NubaseDB::Open(options_, dbname_, &db_));
-    tdb_ = reinterpret_cast<NubaseDBImpl*>(db_);
+    ASSERT_OK(NublobDB::Open(options_, dbname_, &db_));
+    tdb_ = reinterpret_cast<NublobDBImpl*>(db_);
     blob_file_set_ = tdb_->blob_file_set_.get();
     mutex_ = &tdb_->mutex_;
     base_db_ = reinterpret_cast<DBImpl*>(tdb_->GetRootDB());
@@ -127,15 +127,15 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
     db_ = nullptr;
   }
 
-  // TODO: unifiy this and NubaseDBImpl::TEST_StartGC
+  // TODO: unifiy this and NublobDBImpl::TEST_StartGC
   void RunGC(bool expect_gc, bool disable_merge_small = false) {
     MutexLock l(mutex_);
     Status s;
     auto* cfh = base_db_->DefaultColumnFamily();
 
     // Build BlobGC
-    NubaseDBOptions db_options;
-    NubaseCFOptions cf_options;
+    NublobDBOptions db_options;
+    NublobCFOptions cf_options;
     LogBuffer log_buffer(InfoLogLevel::INFO_LEVEL, db_options.info_log.get());
     cf_options.min_gc_batch_size = 0;
     if (disable_merge_small) {
@@ -195,7 +195,7 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
       return s;
     }
     iter->reset(new BlobFileIterator(std::move(file), file_number, file_size,
-                                     NubaseCFOptions()));
+                                     NublobCFOptions()));
     return Status::OK();
   }
 
@@ -214,9 +214,9 @@ class BlobGCJobTest : public testing::TestWithParam<bool /*gc_merge_mode*/> {
     auto rewrite_status = base_db_->Write(WriteOptions(), &wb);
 
     std::vector<BlobFileMeta*> tmp;
-    BlobGC blob_gc(std::move(tmp), NubaseCFOptions(), false /*trigger_next*/);
+    BlobGC blob_gc(std::move(tmp), NublobCFOptions(), false /*trigger_next*/);
     blob_gc.SetColumnFamily(cfh);
-    BlobGCJob blob_gc_job(&blob_gc, base_db_, mutex_, NubaseDBOptions(),
+    BlobGCJob blob_gc_job(&blob_gc, base_db_, mutex_, NublobDBOptions(),
                           GetParam(), Env::Default(), EnvOptions(), nullptr,
                           blob_file_set_, nullptr, nullptr, nullptr);
     bool discardable = false;

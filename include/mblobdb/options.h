@@ -8,8 +8,8 @@
 namespace rocksdb {
 namespace mblobdb {
 
-struct NubaseDBOptions : public DBOptions {
-  // The directory to store data specific to NubaseDB alongside with
+struct NublobDBOptions : public DBOptions {
+  // The directory to store data specific to NublobDB alongside with
   // the base DB.
   //
   // Default: {dbname}/titandb
@@ -37,12 +37,12 @@ struct NubaseDBOptions : public DBOptions {
   // Default: 600 (10 min)
   uint32_t titan_stats_dump_period_sec{600};
 
-  NubaseDBOptions() = default;
-  explicit NubaseDBOptions(const DBOptions& options) : DBOptions(options) {}
+  NublobDBOptions() = default;
+  explicit NublobDBOptions(const DBOptions& options) : DBOptions(options) {}
 
   void Dump(Logger* logger) const;
 
-  NubaseDBOptions& operator=(const DBOptions& options) {
+  NublobDBOptions& operator=(const DBOptions& options) {
     *static_cast<DBOptions*>(this) = options;
     return *this;
   }
@@ -72,7 +72,7 @@ static auto& blob_run_mode_string_map =
 struct ImmutableTitanCFOptions;
 struct MutableTitanCFOptions;
 
-struct NubaseCFOptions : public ColumnFamilyOptions {
+struct NublobCFOptions : public ColumnFamilyOptions {
   // The smallest value to store in blob files. Value smaller than
   // this threshold will be inlined in base DB.
   //
@@ -164,13 +164,13 @@ struct NubaseCFOptions : public ColumnFamilyOptions {
   // Default: false
   bool gc_merge_rewrite{false};
 
-  NubaseCFOptions() = default;
-  explicit NubaseCFOptions(const ColumnFamilyOptions& options)
+  NublobCFOptions() = default;
+  explicit NublobCFOptions(const ColumnFamilyOptions& options)
       : ColumnFamilyOptions(options) {}
-  NubaseCFOptions(const ColumnFamilyOptions&, const ImmutableTitanCFOptions&,
+  NublobCFOptions(const ColumnFamilyOptions&, const ImmutableTitanCFOptions&,
                  const MutableTitanCFOptions&);
 
-  NubaseCFOptions& operator=(const ColumnFamilyOptions& options) {
+  NublobCFOptions& operator=(const ColumnFamilyOptions& options) {
     *dynamic_cast<ColumnFamilyOptions*>(this) = options;
     return *this;
   }
@@ -179,9 +179,9 @@ struct NubaseCFOptions : public ColumnFamilyOptions {
 };
 
 struct ImmutableTitanCFOptions {
-  ImmutableTitanCFOptions() : ImmutableTitanCFOptions(NubaseCFOptions()) {}
+  ImmutableTitanCFOptions() : ImmutableTitanCFOptions(NublobCFOptions()) {}
 
-  explicit ImmutableTitanCFOptions(const NubaseCFOptions& opts)
+  explicit ImmutableTitanCFOptions(const NublobCFOptions& opts)
       : min_blob_size(opts.min_blob_size),
         blob_file_compression(opts.blob_file_compression),
         blob_file_target_size(opts.blob_file_target_size),
@@ -215,9 +215,9 @@ struct ImmutableTitanCFOptions {
 };
 
 struct MutableTitanCFOptions {
-  MutableTitanCFOptions() : MutableTitanCFOptions(NubaseCFOptions()) {}
+  MutableTitanCFOptions() : MutableTitanCFOptions(NublobCFOptions()) {}
 
-  explicit MutableTitanCFOptions(const NubaseCFOptions& opts)
+  explicit MutableTitanCFOptions(const NublobCFOptions& opts)
       : blob_run_mode(opts.blob_run_mode),
         gc_merge_rewrite(opts.gc_merge_rewrite) {}
 
@@ -225,14 +225,14 @@ struct MutableTitanCFOptions {
   bool gc_merge_rewrite;
 };
 
-struct NubaseOptions : public NubaseDBOptions, public NubaseCFOptions {
+struct NubaseOptions : public NublobDBOptions, public NublobCFOptions {
   NubaseOptions() = default;
   explicit NubaseOptions(const Options& options)
-      : NubaseDBOptions(options), NubaseCFOptions(options) {}
+      : NublobDBOptions(options), NublobCFOptions(options) {}
 
   NubaseOptions& operator=(const Options& options) {
-    *static_cast<NubaseDBOptions*>(this) = options;
-    *static_cast<NubaseCFOptions*>(this) = options;
+    *static_cast<NublobDBOptions*>(this) = options;
+    *static_cast<NublobCFOptions*>(this) = options;
     return *this;
   }
 

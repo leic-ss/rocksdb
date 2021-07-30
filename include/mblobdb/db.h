@@ -6,35 +6,35 @@
 namespace rocksdb {
 namespace mblobdb {
 
-struct NubaseCFDescriptor {
+struct NublobCFDescriptor {
   std::string name;
-  NubaseCFOptions options;
-  NubaseCFDescriptor()
-      : name(kDefaultColumnFamilyName), options(NubaseCFOptions()) {}
-  NubaseCFDescriptor(const std::string& _name, const NubaseCFOptions& _options)
+  NublobCFOptions options;
+  NublobCFDescriptor()
+      : name(kDefaultColumnFamilyName), options(NublobCFOptions()) {}
+  NublobCFDescriptor(const std::string& _name, const NublobCFOptions& _options)
       : name(_name), options(_options) {}
 };
 
-class NubaseDB : public StackableDB {
+class NublobDB : public StackableDB {
  public:
   static Status Open(const NubaseOptions& options, const std::string& dbname,
-                     NubaseDB** db);
+                     NublobDB** db);
 
-  static Status Open(const NubaseDBOptions& db_options,
+  static Status Open(const NublobDBOptions& db_options,
                      const std::string& dbname,
-                     const std::vector<NubaseCFDescriptor>& descs,
-                     std::vector<ColumnFamilyHandle*>* handles, NubaseDB** db);
+                     const std::vector<NublobCFDescriptor>& descs,
+                     std::vector<ColumnFamilyHandle*>* handles, NublobDB** db);
 
-  NubaseDB() : StackableDB(nullptr) {}
+  NublobDB() : StackableDB(nullptr) {}
 
   using StackableDB::CreateColumnFamily;
   Status CreateColumnFamily(const ColumnFamilyOptions& options,
                             const std::string& name,
                             ColumnFamilyHandle** handle) override {
-    NubaseCFDescriptor desc(name, NubaseCFOptions(options));
+    NublobCFDescriptor desc(name, NublobCFOptions(options));
     return CreateColumnFamily(desc, handle);
   }
-  Status CreateColumnFamily(const NubaseCFDescriptor& desc,
+  Status CreateColumnFamily(const NublobCFDescriptor& desc,
                             ColumnFamilyHandle** handle) {
     std::vector<ColumnFamilyHandle*> handles;
     Status s = CreateColumnFamilies({desc}, &handles);
@@ -48,23 +48,23 @@ class NubaseDB : public StackableDB {
   Status CreateColumnFamilies(
       const ColumnFamilyOptions& options, const std::vector<std::string>& names,
       std::vector<ColumnFamilyHandle*>* handles) override {
-    std::vector<NubaseCFDescriptor> descs;
+    std::vector<NublobCFDescriptor> descs;
     for (auto& name : names) {
-      descs.emplace_back(name, NubaseCFOptions(options));
+      descs.emplace_back(name, NublobCFOptions(options));
     }
     return CreateColumnFamilies(descs, handles);
   }
   Status CreateColumnFamilies(
       const std::vector<ColumnFamilyDescriptor>& base_descs,
       std::vector<ColumnFamilyHandle*>* handles) override {
-    std::vector<NubaseCFDescriptor> descs;
+    std::vector<NublobCFDescriptor> descs;
     for (auto& desc : base_descs) {
-      descs.emplace_back(desc.name, NubaseCFOptions(desc.options));
+      descs.emplace_back(desc.name, NublobCFOptions(desc.options));
     }
     return CreateColumnFamilies(descs, handles);
   }
   virtual Status CreateColumnFamilies(
-      const std::vector<NubaseCFDescriptor>& descs,
+      const std::vector<NublobCFDescriptor>& descs,
       std::vector<ColumnFamilyHandle*>* handles) = 0;
 
   Status DropColumnFamily(ColumnFamilyHandle* handle) override {
@@ -105,7 +105,7 @@ class NubaseDB : public StackableDB {
   using StackableDB::Merge;
   Status Merge(const WriteOptions&, ColumnFamilyHandle*, const Slice& /*key*/,
                const Slice& /*value*/) override {
-    return Status::NotSupported("NubaseDB doesn't support this operation");
+    return Status::NotSupported("NublobDB doesn't support this operation");
   }
 
   using rocksdb::StackableDB::SingleDelete;
@@ -146,7 +146,7 @@ class NubaseDB : public StackableDB {
                     const std::unordered_map<std::string, std::string>&
                         new_options) override = 0;
 
-  virtual NubaseDBOptions GetTitanDBOptions() const = 0;
+  virtual NublobDBOptions GetTitanDBOptions() const = 0;
 
   struct Properties {
     // "rocksdb.titandb.num-blob-files-at-level<N>" - returns string containing

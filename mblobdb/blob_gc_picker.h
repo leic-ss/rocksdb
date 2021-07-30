@@ -29,14 +29,14 @@ class BlobGCPicker {
 
 class BasicBlobGCPicker final : public BlobGCPicker {
  public:
-  BasicBlobGCPicker(NubaseDBOptions, NubaseCFOptions, TitanStats*, uint64_t scan_speed=0);
+  BasicBlobGCPicker(NublobDBOptions, NublobCFOptions, TitanStats*, uint64_t scan_speed=0);
   ~BasicBlobGCPicker();
 
   std::unique_ptr<BlobGC> PickBlobGC(BlobStorage* blob_storage) override;
 
  private:
-  NubaseDBOptions db_options_;
-  NubaseCFOptions cf_options_;
+  NublobDBOptions db_options_;
+  NublobCFOptions cf_options_;
   TitanStats* stats_;
   uint64_t max_scan_speed;
 
