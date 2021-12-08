@@ -475,19 +475,6 @@ enum StatsLevel : uint8_t {
   kAll,
 };
 
-#define MAX_AREA_STATISTICS_SLOT 1025
-
-struct AreaStatistics {
-  int64_t num_record_drop_user = 0;
-
-  int64_t num_record_drop_hidden = 0;
-  int64_t num_record_drop_obsolete = 0;
-  int64_t num_record_drop_range_del = 0;
-  int64_t num_range_del_drop_obsolete = 0;
-  // Deletions obsoleted before bottom level due to file gap optimization.
-  int64_t num_optimized_del_drop_obsolete = 0;
-};
-
 // Analyze the performance of a db by providing cumulative stats over time.
 // Usage:
 //  Options options;
@@ -556,9 +543,6 @@ class Statistics {
 
   virtual bool isAreaStatEnabled() { return false; }
   virtual void setAreaStatFlag(bool flag) { }
-
-public:
-  AreaStatistics area_stats[MAX_AREA_STATISTICS_SLOT];
 
  private:
   std::atomic<StatsLevel> stats_level_{kExceptDetailedTimers};

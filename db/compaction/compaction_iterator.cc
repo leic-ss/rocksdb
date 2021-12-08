@@ -128,8 +128,6 @@ void CompactionIterator::ResetRecordCounts() {
   iter_stats_.num_record_drop_range_del = 0;
   iter_stats_.num_range_del_drop_obsolete = 0;
   iter_stats_.num_optimized_del_drop_obsolete = 0;
-
-  memset(iter_stats_.area_stats, 0, sizeof(iter_stats_.area_stats));
 }
 
 void CompactionIterator::SeekToFirst() {
@@ -517,12 +515,7 @@ void CompactionIterator::NextFromInput() {
 
       if (ikey_.user_key.size() > 2) {
           const char* buf = ikey_.user_key.data();
-          int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
-          if (area >= 0 && area < 1025) {
-              iter_stats_.area_stats[area].num_record_drop_hidden++;
-          } else {
-              ROCKS_LOG_ERROR(info_log_, "key: %.*s decode area failed!", (int32_t)ikey_.user_key.size(), ikey_.user_key.data());
-          }
+          // int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
       }
 
       input_->Next();
@@ -557,14 +550,7 @@ void CompactionIterator::NextFromInput() {
 
       if (ikey_.user_key.size() > 2) {
           const char* buf = ikey_.user_key.data();
-          int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
-          if (area >= 0 && area < 1025) {
-              if (!bottommost_level_) {
-                  iter_stats_.area_stats[area].num_record_drop_hidden++;
-              }
-          } else {
-              ROCKS_LOG_ERROR(info_log_, "key: %.*s decode area failed!", (int32_t)ikey_.user_key.size(), ikey_.user_key.data());
-          }
+          // int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
       }
 
       input_->Next();

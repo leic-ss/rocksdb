@@ -921,16 +921,6 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
     if (c_iter_stats.num_input_records % kRecordStatsEvery ==
         kRecordStatsEvery - 1) {
       RecordDroppedKeys(c_iter_stats, &sub_compact->compaction_job_stats);
-      if (enable_area_stat && stats_) {
-          for (uint32_t i = 0; i<1025; i++) {
-              stats_->area_stats[i].num_record_drop_user += c_iter_stats.area_stats[i].num_record_drop_user;
-              stats_->area_stats[i].num_record_drop_hidden += c_iter_stats.area_stats[i].num_record_drop_hidden;
-              stats_->area_stats[i].num_record_drop_obsolete += c_iter_stats.area_stats[i].num_record_drop_obsolete;
-              stats_->area_stats[i].num_record_drop_range_del += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
-              stats_->area_stats[i].num_range_del_drop_obsolete += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
-              stats_->area_stats[i].num_optimized_del_drop_obsolete += c_iter_stats.area_stats[i].num_optimized_del_drop_obsolete;
-          }
-      }
       c_iter->ResetRecordCounts();
       RecordCompactionIOStats();
     }
@@ -1019,16 +1009,6 @@ void CompactionJob::ProcessKeyValueCompaction(SubcompactionState* sub_compact) {
   RecordTick(stats_, FILTER_OPERATION_TOTAL_TIME,
              c_iter_stats.total_filter_time);
   RecordDroppedKeys(c_iter_stats, &sub_compact->compaction_job_stats);
-  if (enable_area_stat && stats_) {
-      for (uint32_t i = 0; i<1025; i++) {
-          stats_->area_stats[i].num_record_drop_user += c_iter_stats.area_stats[i].num_record_drop_user;
-          stats_->area_stats[i].num_record_drop_hidden += c_iter_stats.area_stats[i].num_record_drop_hidden;
-          stats_->area_stats[i].num_record_drop_obsolete += c_iter_stats.area_stats[i].num_record_drop_obsolete;
-          stats_->area_stats[i].num_record_drop_range_del += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
-          stats_->area_stats[i].num_range_del_drop_obsolete += c_iter_stats.area_stats[i].num_range_del_drop_obsolete;
-          stats_->area_stats[i].num_optimized_del_drop_obsolete += c_iter_stats.area_stats[i].num_optimized_del_drop_obsolete;
-      }
-  }
 
   RecordCompactionIOStats();
 
