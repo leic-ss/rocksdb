@@ -166,6 +166,8 @@ class NublobDBImpl : public NublobDB {
 
   Status CompactAuto() override;
   Status CompactStatus(std::string& info) override;
+  Status GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size_out,
+                             std::unordered_map<uint32_t, uint64_t>& kv_area_item_count_out);
 
  private:
   class FileManager;
@@ -196,6 +198,8 @@ class NublobDBImpl : public NublobDB {
 
   Status InitializeGC(const std::vector<ColumnFamilyHandle*>& cf_handles);
 
+  Status InitializeKvAreaProperties(const std::vector<ColumnFamilyHandle*>& cf_handles);
+
   Status ExtractGCStatsFromTableProperty(
       const std::shared_ptr<const TableProperties>& table_properties,
       bool to_add, std::map<uint64_t, int64_t>* blob_file_size_diff);
@@ -203,6 +207,17 @@ class NublobDBImpl : public NublobDB {
   Status ExtractGCStatsFromTableProperty(
       const TableProperties& table_properties, bool to_add,
       std::map<uint64_t, int64_t>* blob_file_size_diff);
+
+  Status ExtractKvAreaPropertiesFromTableProperty(
+      const std::shared_ptr<const TableProperties>& table_properties,
+      bool to_add,
+      std::map<uint32_t, int64_t>& blob_kv_area_size_diff,
+      std::map<uint32_t, int64_t>& blob_kv_area_itemcount_diff);
+
+  Status ExtractKvAreaPropertiesFromTableProperty(
+      const TableProperties& table_properties, bool to_add,
+      std::map<uint32_t, int64_t>& blob_kv_area_size_diff,
+      std::map<uint32_t, int64_t>& blob_kv_area_itemcount_diff);
 
   // REQUIRE: mutex_ held
   void AddToGCQueue(uint32_t column_family_id) {
@@ -308,6 +323,10 @@ class NublobDBImpl : public NublobDB {
   std::unique_ptr<BlobFileSet> blob_file_set_;
   std::set<uint64_t> pending_outputs_;
   std::shared_ptr<BlobFileManager> blob_manager_;
+
+  std::mutex mtx;
+  std::unordered_map<uint32_t, uint64_t> kv_area_size;
+  std::unordered_map<uint32_t, uint64_t> kv_area_itemcount;
 
   // gc_queue_ hold column families that we need to gc.
   // pending_gc_ hold column families that already on gc_queue_.

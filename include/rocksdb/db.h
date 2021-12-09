@@ -277,6 +277,11 @@ class DB {
       const std::vector<std::string>& column_family_names,
       std::vector<ColumnFamilyHandle*>* handles);
 
+  virtual Status GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size,
+                                     std::unordered_map<uint32_t, uint64_t>& kv_area_item_count) {
+      return Status::NotSupported("Not implemented");
+  }
+
   // Bulk create column families.
   // Return the handles of the column families through the argument handles.
   // In case of error, the request may succeed partially, and handles will

@@ -4,6 +4,7 @@
 
 #include "blob_file_iterator.h"
 #include "blob_file_size_collector.h"
+#include "blob_kv_area_properties_collector.h"
 #include "blob_gc_job.h"
 #include "blob_gc_picker.h"
 #include "util.h"
@@ -49,6 +50,60 @@ Status NublobDBImpl::ExtractGCStatsFromTableProperty(
   return Status::OK();
 }
 
+Status NublobDBImpl::ExtractKvAreaPropertiesFromTableProperty(
+    const std::shared_ptr<const TableProperties>& table_properties, bool to_add,
+    std::map<uint32_t, int64_t>& blob_kv_area_size_diff,
+    std::map<uint32_t, int64_t>& blob_kv_area_itemcount_diff)
+{
+    if (table_properties == nullptr) {
+      // No table property found. File may not contain blob indices.
+      return Status::OK();
+    }
+    return ExtractKvAreaPropertiesFromTableProperty(*table_properties.get(),
+                                                    to_add,
+                                                    blob_kv_area_size_diff,
+                                                    blob_kv_area_itemcount_diff);
+}
+
+Status NublobDBImpl::ExtractKvAreaPropertiesFromTableProperty(
+    const TableProperties& table_properties, bool to_add,
+    std::map<uint32_t, int64_t>& blob_kv_area_size_diff,
+    std::map<uint32_t, int64_t>& blob_kv_area_itemcount_diff)
+{
+    auto& prop = table_properties.user_collected_properties;
+    auto prop_iter = prop.find(BlobKvAreaPropertiesCollector::kvAreaPropertiesName);
+    if (prop_iter == prop.end()) {
+        // No table property found. File may not contain blob indices.
+        return Status::OK();
+    }
+    Slice prop_slice(prop_iter->second);
+    std::map<uint32_t, uint64_t> kv_area_size_temp;
+    std::map<uint32_t, uint64_t> kv_area_itemcount_temp;
+    if (!BlobKvAreaPropertiesCollector::Decode(&prop_slice, kv_area_size_temp, kv_area_itemcount_temp)) {
+        return Status::Corruption("Failed to decode blob kv area property.");
+    }
+
+    for (const auto& item : kv_area_size_temp) {
+        uint64_t area = item.first;
+        int64_t diff = static_cast<int64_t>(item.second);
+        if (!to_add) {
+            diff = -diff;
+        }
+        blob_kv_area_size_diff[area] += diff;
+    }
+
+    for (const auto& item : kv_area_itemcount_temp) {
+        uint64_t area = item.first;
+        int64_t diff = static_cast<int64_t>(item.second);
+        if (!to_add) {
+            diff = -diff;
+        }
+        blob_kv_area_itemcount_diff[area] += diff;
+    }
+
+    return Status::OK();
+}
+
 Status NublobDBImpl::InitializeGC(
     const std::vector<ColumnFamilyHandle*>& cf_handles) {
   assert(!initialized());
@@ -71,7 +126,7 @@ Status NublobDBImpl::InitializeGC(
       s = ExtractGCStatsFromTableProperty(file.second, true /*to_add*/,
                                           &blob_file_size_diff);
       if (!s.ok()) {
-        return s;
+          return s;
       }
     }
     std::shared_ptr<BlobStorage> blob_storage =
@@ -100,6 +155,61 @@ Status NublobDBImpl::InitializeGC(
     MaybeScheduleGC();
   }
   return s;
+}
+
+Status NublobDBImpl::InitializeKvAreaProperties(const std::vector<ColumnFamilyHandle*>& cf_handles) {
+    assert(!initialized());
+    Status s;
+    FlushOptions flush_opts;
+    flush_opts.wait = true;
+    for (ColumnFamilyHandle* cf_handle : cf_handles) {
+        // Flush memtable to make sure keys written by GC are all in SSTs.
+        s = Flush(flush_opts, cf_handle);
+        if (!s.ok()) {
+            return s;
+        }
+
+        TablePropertiesCollection collection;
+        s = GetPropertiesOfAllTables(cf_handle, &collection);
+        if (!s.ok()) {
+            return s;
+        }
+
+        std::map<uint32_t, int64_t> kv_area_size_diff;
+        std::map<uint32_t, int64_t> kv_area_itemcount_diff;
+        for (auto& file : collection) {
+            s = ExtractKvAreaPropertiesFromTableProperty(file.second,
+                                                         true,
+                                                         kv_area_size_diff,
+                                                         kv_area_itemcount_diff);
+            if (!s.ok()) {
+                return s;
+            }
+        }
+
+        {
+            std::lock_guard<std::mutex> lk(mtx);
+            for (auto item : kv_area_size_diff) {
+                auto iter = kv_area_size.find(item.first);
+                if (iter != kv_area_size.end()) {
+                    kv_area_size.emplace(item.first, item.second);
+                } else {
+                    iter->second += item.second;
+                }
+            }
+
+            for (auto item : kv_area_itemcount_diff) {
+                auto iter = kv_area_itemcount.find(item.first);
+                if (iter != kv_area_itemcount.end()) {
+                    kv_area_itemcount.emplace(item.first, item.second);
+                } else {
+                    iter->second += item.second;
+                }
+            }
+        }
+    }
+
+    return s;
 }
 
 void NublobDBImpl::MaybeScheduleGC() {

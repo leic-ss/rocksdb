@@ -14,6 +14,7 @@
 #include "blob_file_builder.h"
 #include "blob_file_iterator.h"
 #include "blob_file_size_collector.h"
+#include "blob_kv_area_properties_collector.h"
 #include "blob_gc.h"
 #include "db_iter.h"
 #include "table_factory.h"
@@ -316,6 +317,9 @@ Status NublobDBImpl::OpenImpl(const std::vector<NublobCFDescriptor>& descs,
     cf_opts.disable_auto_compactions = true;
     cf_opts.table_properties_collector_factories.emplace_back(
         std::make_shared<BlobFileSizeCollectorFactory>());
+    cf_opts.table_properties_collector_factories.emplace_back(
+        std::make_shared<BlobKvAreaPropertiesCollectorFactory>());
+
     titan_table_factories.push_back(std::make_shared<NublobTableFactory>(
         db_options_, desc.options, this, blob_manager_, &mutex_,
         blob_file_set_.get(), stats_.get()));
@@ -1170,6 +1174,41 @@ void NublobDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
     assert(false);
   }
 
+  std::map<uint32_t, int64_t> kv_area_size_diff;
+  std::map<uint32_t, int64_t> kv_area_itemcount_diff;
+  s = ExtractKvAreaPropertiesFromTableProperty(flush_job_info.table_properties,
+                                               true,
+                                               kv_area_size_diff,
+                                               kv_area_itemcount_diff);
+  if (!s.ok()) {
+    // TODO: Should treat it as background error and make DB read-only.
+    ROCKS_LOG_ERROR(db_options_.info_log,
+                    "OnCompactionCompleted[%d]: failed to extract GC stats from table, error: %s",
+                    flush_job_info.job_id, s.ToString().c_str());
+    assert(false);
+  }
+
+  {
+      std::lock_guard<std::mutex> lk(mtx);
+      for (auto item : kv_area_size_diff) {
+          auto iter = kv_area_size.find(item.first);
+          if (iter != kv_area_size.end()) {
+              kv_area_size.emplace(item.first, item.second);
+          } else {
+              iter->second += item.second;
+          }
+      }
+
+      for (auto item : kv_area_itemcount_diff) {
+          auto iter = kv_area_itemcount.find(item.first);
+          if (iter != kv_area_itemcount.end()) {
+              kv_area_itemcount.emplace(item.first, item.second);
+          } else {
+              iter->second += item.second;
+          }
+      }
+  }
+
   {
     MutexLock l(&mutex_);
     auto blob_storage =
@@ -1268,6 +1307,53 @@ void NublobDBImpl::OnCompactionCompleted(
   };
   update_diff(compaction_job_info.input_files, false /*to_add*/);
   update_diff(compaction_job_info.output_files, true /*to_add*/);
+
+  std::map<uint32_t, int64_t> kv_area_size_diff;
+  std::map<uint32_t, int64_t> kv_area_itemcount_diff;
+  auto update_kv_properties_diff = [&](const std::vector<std::string>& files, bool to_add) {
+      for (const auto& file_name : files) {
+          auto prop_iter = prop_collection.find(file_name);
+          if (prop_iter == prop_collection.end()) {
+              ROCKS_LOG_WARN(db_options_.info_log,
+                            "OnCompactionCompleted[%d]: No table properties for file %s.",
+                             compaction_job_info.job_id, file_name.c_str());
+              continue;
+          }
+          Status s = ExtractKvAreaPropertiesFromTableProperty(prop_iter->second, to_add, kv_area_size_diff, kv_area_itemcount_diff);
+          if (!s.ok()) {
+            // TODO: Should treat it as background error and make DB read-only.
+            ROCKS_LOG_ERROR(db_options_.info_log,
+                            "OnCompactionCompleted[%d]: failed to extract GC stats from table "
+                            "property: compaction file: %s, error: %s",
+                            compaction_job_info.job_id, file_name.c_str(),
+                            s.ToString().c_str());
+            assert(false);
+          }
+      }
+  };
+  update_kv_properties_diff(compaction_job_info.input_files, false /*to_add*/);
+  update_kv_properties_diff(compaction_job_info.output_files, true /*to_add*/);
+
+  {
+      std::lock_guard<std::mutex> lk(mtx);
+      for (auto item : kv_area_size_diff) {
+          auto iter = kv_area_size.find(item.first);
+          if (iter != kv_area_size.end()) {
+              kv_area_size.emplace(item.first, item.second);
+          } else {
+              iter->second += item.second;
+          }
+      }
+
+      for (auto item : kv_area_itemcount_diff) {
+          auto iter = kv_area_itemcount.find(item.first);
+          if (iter != kv_area_itemcount.end()) {
+              kv_area_itemcount.emplace(item.first, item.second);
+          } else {
+              iter->second += item.second;
+          }
+      }
+  }
 
   {
     MutexLock l(&mutex_);
@@ -1379,6 +1465,18 @@ void NublobDBImpl::OnCompactionCompleted(
       MaybeScheduleGC();
     }
   }
+}
+
+Status NublobDBImpl::GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size_out,
+                                         std::unordered_map<uint32_t, uint64_t>& kv_area_item_count_out)
+{
+    {
+        std::lock_guard<std::mutex> lk(mtx);
+        kv_area_size_out = kv_area_size;
+        kv_area_item_count_out = kv_area_itemcount;
+    }
+
+    return Status::OK();
 }
 
 Status NublobDBImpl::SetBGError(const Status& s) {
