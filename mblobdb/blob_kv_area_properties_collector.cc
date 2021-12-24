@@ -76,9 +76,10 @@ Status BlobKvAreaPropertiesCollector::AddUserKey(const Slice& key,
     // Slice meta_value = Slice(value.data(), ValueMeta::size());
     // ValueMeta meta;
     // meta.decodeFromBuf((uint8_t*)meta_value.data());
-    if (key.size() < 2) return Status::InvalidArgument();
+    if (key.size() < 5) return Status::InvalidArgument();
 
-    const char* buf = key.data();
+    static const int32_t meta_size = 3;
+    const char* buf = key.data() + meta_size;
     int32_t area = (static_cast<int32_t>(static_cast<uint8_t>(buf[1])) << 8) | static_cast<uint8_t>(buf[0]);
 
     if (type == kEntryPut) {

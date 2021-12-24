@@ -166,8 +166,8 @@ class NublobDBImpl : public NublobDB {
 
   Status CompactAuto() override;
   Status CompactStatus(std::string& info) override;
-  Status GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size_out,
-                             std::unordered_map<uint32_t, uint64_t>& kv_area_item_count_out);
+  Status GetKvAreaProperties(std::unordered_map<uint32_t, int64_t>& kv_area_size_out,
+                             std::unordered_map<uint32_t, int64_t>& kv_area_item_count_out);
 
  private:
   class FileManager;
@@ -325,8 +325,8 @@ class NublobDBImpl : public NublobDB {
   std::shared_ptr<BlobFileManager> blob_manager_;
 
   std::mutex mtx;
-  std::unordered_map<uint32_t, uint64_t> kv_area_size;
-  std::unordered_map<uint32_t, uint64_t> kv_area_itemcount;
+  std::unordered_map<uint32_t, int64_t> kv_area_size;
+  std::unordered_map<uint32_t, int64_t> kv_area_itemcount;
 
   // gc_queue_ hold column families that we need to gc.
   // pending_gc_ hold column families that already on gc_queue_.

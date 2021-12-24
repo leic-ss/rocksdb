@@ -191,7 +191,7 @@ Status NublobDBImpl::InitializeKvAreaProperties(const std::vector<ColumnFamilyHa
             std::lock_guard<std::mutex> lk(mtx);
             for (auto item : kv_area_size_diff) {
                 auto iter = kv_area_size.find(item.first);
-                if (iter != kv_area_size.end()) {
+                if (iter == kv_area_size.end()) {
                     kv_area_size.emplace(item.first, item.second);
                 } else {
                     iter->second += item.second;
@@ -200,7 +200,7 @@ Status NublobDBImpl::InitializeKvAreaProperties(const std::vector<ColumnFamilyHa
 
             for (auto item : kv_area_itemcount_diff) {
                 auto iter = kv_area_itemcount.find(item.first);
-                if (iter != kv_area_itemcount.end()) {
+                if (iter == kv_area_itemcount.end()) {
                     kv_area_itemcount.emplace(item.first, item.second);
                 } else {
                     iter->second += item.second;

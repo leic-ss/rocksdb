@@ -365,6 +365,15 @@ Status NublobDBImpl::OpenImpl(const std::vector<NublobCFDescriptor>& descs,
     return s;
   }
   s = InitializeGC(*handles);
+  if (!s.ok()) {
+    return s;
+  }
+
+  s = InitializeKvAreaProperties(*handles);
+  if (!s.ok()) {
+    return s;
+  }
+
   TEST_SYNC_POINT_CALLBACK("NublobDBImpl::OpenImpl:BeforeInitialized", this);
   // Initialization done.
   initialized_ = true;
@@ -1192,7 +1201,7 @@ void NublobDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
       std::lock_guard<std::mutex> lk(mtx);
       for (auto item : kv_area_size_diff) {
           auto iter = kv_area_size.find(item.first);
-          if (iter != kv_area_size.end()) {
+          if (iter == kv_area_size.end()) {
               kv_area_size.emplace(item.first, item.second);
           } else {
               iter->second += item.second;
@@ -1201,7 +1210,7 @@ void NublobDBImpl::OnFlushCompleted(const FlushJobInfo& flush_job_info) {
 
       for (auto item : kv_area_itemcount_diff) {
           auto iter = kv_area_itemcount.find(item.first);
-          if (iter != kv_area_itemcount.end()) {
+          if (iter == kv_area_itemcount.end()) {
               kv_area_itemcount.emplace(item.first, item.second);
           } else {
               iter->second += item.second;
@@ -1338,7 +1347,7 @@ void NublobDBImpl::OnCompactionCompleted(
       std::lock_guard<std::mutex> lk(mtx);
       for (auto item : kv_area_size_diff) {
           auto iter = kv_area_size.find(item.first);
-          if (iter != kv_area_size.end()) {
+          if (iter == kv_area_size.end()) {
               kv_area_size.emplace(item.first, item.second);
           } else {
               iter->second += item.second;
@@ -1347,7 +1356,7 @@ void NublobDBImpl::OnCompactionCompleted(
 
       for (auto item : kv_area_itemcount_diff) {
           auto iter = kv_area_itemcount.find(item.first);
-          if (iter != kv_area_itemcount.end()) {
+          if (iter == kv_area_itemcount.end()) {
               kv_area_itemcount.emplace(item.first, item.second);
           } else {
               iter->second += item.second;
@@ -1467,8 +1476,8 @@ void NublobDBImpl::OnCompactionCompleted(
   }
 }
 
-Status NublobDBImpl::GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size_out,
-                                         std::unordered_map<uint32_t, uint64_t>& kv_area_item_count_out)
+Status NublobDBImpl::GetKvAreaProperties(std::unordered_map<uint32_t, int64_t>& kv_area_size_out,
+                                         std::unordered_map<uint32_t, int64_t>& kv_area_item_count_out)
 {
     {
         std::lock_guard<std::mutex> lk(mtx);

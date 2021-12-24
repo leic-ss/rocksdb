@@ -277,8 +277,8 @@ class DB {
       const std::vector<std::string>& column_family_names,
       std::vector<ColumnFamilyHandle*>* handles);
 
-  virtual Status GetKvAreaProperties(std::unordered_map<uint32_t, uint64_t>& kv_area_size,
-                                     std::unordered_map<uint32_t, uint64_t>& kv_area_item_count) {
+  virtual Status GetKvAreaProperties(std::unordered_map<uint32_t, int64_t>& kv_area_size_out,
+                                     std::unordered_map<uint32_t, int64_t>& kv_area_item_count_out) {
       return Status::NotSupported("Not implemented");
   }
 
