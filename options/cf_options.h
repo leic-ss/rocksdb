@@ -177,7 +177,7 @@ struct MutableCFOptions {
         max_successive_merges(0),
         inplace_update_num_locks(0),
         prefix_extractor(nullptr),
-        raft_log_min_key(""),
+        raft_log_min_key(0),
         disable_auto_compactions(false),
         soft_pending_compaction_bytes_limit(0),
         hard_pending_compaction_bytes_limit(0),
@@ -227,7 +227,7 @@ struct MutableCFOptions {
   size_t max_successive_merges;
   size_t inplace_update_num_locks;
   std::shared_ptr<const SliceTransform> prefix_extractor;
-  std::string raft_log_min_key;
+  uint64_t raft_log_min_key;
 
   // Compaction related options
   bool disable_auto_compactions;

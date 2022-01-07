@@ -70,10 +70,14 @@ Compaction* FIFOCompactionPickerRaftLog::PickRaftlogExpiredCompaction(
   // avoid underflow
   for (auto ritr = level_files.rbegin(); ritr != level_files.rend(); ++ritr) {
     auto f = *ritr;
-    Slice largest_key = f->largest.user_key();
-    Slice raft_log_min_key(mutable_cf_options.raft_log_min_key.data(), mutable_cf_options.raft_log_min_key.size());
 
-    if (largest_key.compare(raft_log_min_key) < 0) {
+    Slice largest_key = f->largest.user_key();
+    uint64_t r_val = 0;
+    if (largest_key.size() == 8) {
+      get64b(largest_key.data(), r_val);
+    }
+
+    if (r_val != 0 && r_val < mutable_cf_options.raft_log_min_key) {
         total_size -= f->compensated_file_size;
         inputs[0].files.push_back(f);
     }

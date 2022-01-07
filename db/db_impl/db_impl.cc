@@ -1004,16 +1004,8 @@ Status DBImpl::SetOptions(
       immutable_db_options_.info_log,
       "SetOptions() on column family [%s], inputs:", cfd->GetName().c_str());
   for (const auto& o : options_map) {
-    if (o.first == "raft_log_min_key") {
-      uint64_t val = 0;
-      if (o.second.size() == 8) {
-        get64l(o.second.data(), val);
-      }
-      ROCKS_LOG_INFO(immutable_db_options_.info_log, "%s: %lu\n", o.first.c_str(), val);
-    } else {
-      ROCKS_LOG_INFO(immutable_db_options_.info_log, "%s: %s\n", o.first.c_str(),
+    ROCKS_LOG_INFO(immutable_db_options_.info_log, "%s: %s\n", o.first.c_str(),
                    o.second.c_str());
-    }
   }
   if (s.ok()) {
     ROCKS_LOG_INFO(immutable_db_options_.info_log,

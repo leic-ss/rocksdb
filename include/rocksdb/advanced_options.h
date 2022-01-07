@@ -413,7 +413,7 @@ struct AdvancedColumnFamilyOptions {
   // Dynamically changeable through SetOptions() API
   uint64_t target_file_size_base = 64 * 1048576;
 
-  std::string raft_log_min_key = "";
+  uint64_t raft_log_min_key = 0;
 
   // By default target_file_size_multiplier is 1, which means
   // by default files in different levels will have similar size.
