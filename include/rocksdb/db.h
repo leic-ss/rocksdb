@@ -58,6 +58,17 @@ class TraceWriter;
 class CompactionJobInfo;
 #endif
 
+#define get64l(ptr, val) {              \
+    uint64_t tmp = ptr[7]; tmp <<= 8;   \
+    tmp |= ptr[6]; tmp <<= 8;           \
+    tmp |= ptr[5]; tmp <<= 8;           \
+    tmp |= ptr[4]; tmp <<= 8;           \
+    tmp |= ptr[3]; tmp <<= 8;           \
+    tmp |= ptr[2]; tmp <<= 8;           \
+    tmp |= ptr[1]; tmp <<= 8;           \
+    tmp |= ptr[0];                      \
+    val = tmp;                          }
+
 #define get64b(ptr, val) {              \
     uint64_t tmp = ptr[0]; tmp <<= 8;   \
     tmp |= ptr[1]; tmp <<= 8;           \

@@ -164,7 +164,7 @@ void MutableCFOptions::Dump(Logger* log) const {
   ROCKS_LOG_INFO(log, "                    target_file_size_base: %" PRIu64,
                  target_file_size_base);
   ROCKS_LOG_INFO(log, "                    raft_log_min_key: %" PRIu64,
-                 raft_log_min_key;
+                 raft_log_min_key);
   ROCKS_LOG_INFO(log, "              target_file_size_multiplier: %d",
                  target_file_size_multiplier);
   ROCKS_LOG_INFO(log, "                 max_bytes_for_level_base: %" PRIu64,

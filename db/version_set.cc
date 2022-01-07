@@ -2350,12 +2350,14 @@ uint32_t GetExpiredRaftLogFilesCount(const ImmutableCFOptions& ioptions,
   if (mutable_cf_options.raft_log_min_key == 0) return 0;
 
   std::string buffer("GetExpiredRaftLogFilesCount");
+  buffer.append(" raft_log_min_key[").append(std::to_string(mutable_cf_options.raft_log_min_key));
   for (FileMetaData* f : files) {
     if (!f->being_compacted) {
       Slice largest_key = f->largest.user_key();
       uint64_t r_val = 0;
       if (largest_key.size() == 8) {
-        get64b(largest_key.data(), r_val);
+        const uint8_t* buff = (const uint8_t*)largest_key.data();
+        get64b(buff, r_val);
       }
 
       if (r_val != 0 && r_val < mutable_cf_options.raft_log_min_key) {
@@ -2365,15 +2367,16 @@ uint32_t GetExpiredRaftLogFilesCount(const ImmutableCFOptions& ioptions,
       Slice smallest_key = f->smallest.user_key();
       uint64_t l_val = 0;
       if (smallest_key.size() == 8) {
-        get64b(smallest_key.data(), l_val);
+        const uint8_t* buff = (const uint8_t*)smallest_key.data();
+        get64b(buff, l_val);
       }
 
-      buffer.append(" ").append(std::string(f->fd.GetNumber())).append("[").append(std::string(l_val))
-            .append(", ").append(std::string(r_val)).append("]");
+      buffer.append(" ").append(std::to_string(f->fd.GetNumber())).append("[").append(std::to_string(l_val))
+            .append(", ").append(std::to_string(r_val)).append("]");
     }
   }
 
-  ROCKS_LOG_WARN(ioptions.info_log, "%s count: %lu", buffer.c_str(), raft_log_expired_files_count);
+  ROCKS_LOG_WARN(ioptions.info_log, "%s count: %u", buffer.c_str(), raft_log_expired_files_count);
 
   return raft_log_expired_files_count;
 }

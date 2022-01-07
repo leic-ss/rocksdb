@@ -81,8 +81,6 @@ void FileMetaData::UpdateBoundaries(const Slice& key, const Slice& value,
     smallest.DecodeFrom(key);
   }
   largest.DecodeFrom(key);
-  fd.smallest_seqno = std::min(fd.smallest_seqno, seqno);
-  fd.largest_seqno = std::max(fd.largest_seqno, seqno);
 
 #ifndef ROCKSDB_LITE
   if (value_type == kTypeBlobIndex) {

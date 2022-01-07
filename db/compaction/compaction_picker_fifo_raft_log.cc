@@ -74,7 +74,8 @@ Compaction* FIFOCompactionPickerRaftLog::PickRaftlogExpiredCompaction(
     Slice largest_key = f->largest.user_key();
     uint64_t r_val = 0;
     if (largest_key.size() == 8) {
-      get64b(largest_key.data(), r_val);
+      const uint8_t* buff = (const uint8_t*)largest_key.data();
+      get64b(buff, r_val);
     }
 
     if (r_val != 0 && r_val < mutable_cf_options.raft_log_min_key) {

@@ -159,6 +159,7 @@ Status BuildTable(
       const Slice& value = c_iter.value();
       const ParsedInternalKey& ikey = c_iter.ikey();
       builder->Add(key, value);
+
       meta->UpdateBoundaries(key, value, ikey.sequence, ikey.type);
 
       // TODO(noetzli): Update stats after flush, too.
