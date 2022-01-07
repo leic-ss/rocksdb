@@ -723,7 +723,8 @@ Status DBImpl::CompactRange(const CompactRangeOptions& options,
       // level 0 can never be the bottommost level (i.e. if all files are in
       // level 0, we will compact to level 1)
       if (cfd->ioptions()->compaction_style == kCompactionStyleUniversal ||
-          cfd->ioptions()->compaction_style == kCompactionStyleFIFO) {
+          cfd->ioptions()->compaction_style == kCompactionStyleFIFO ||
+          cfd->ioptions()->compaction_style == kCompactionStyleFIFORaftLog) {
         output_level = level;
       } else if (level == max_level_with_files && level > 0) {
         if (options.bottommost_level_compaction ==
@@ -1389,7 +1390,8 @@ Status DBImpl::RunManualCompaction(
   // all files.
   if (begin == nullptr ||
       cfd->ioptions()->compaction_style == kCompactionStyleUniversal ||
-      cfd->ioptions()->compaction_style == kCompactionStyleFIFO) {
+      cfd->ioptions()->compaction_style == kCompactionStyleFIFO ||
+      cfd->ioptions()->compaction_style == kCompactionStyleFIFORaftLog) {
     manual.begin = nullptr;
   } else {
     begin_storage.SetMinPossibleForUserKey(*begin);
@@ -1397,7 +1399,8 @@ Status DBImpl::RunManualCompaction(
   }
   if (end == nullptr ||
       cfd->ioptions()->compaction_style == kCompactionStyleUniversal ||
-      cfd->ioptions()->compaction_style == kCompactionStyleFIFO) {
+      cfd->ioptions()->compaction_style == kCompactionStyleFIFO ||
+      cfd->ioptions()->compaction_style == kCompactionStyleFIFORaftLog) {
     manual.end = nullptr;
   } else {
     end_storage.SetMaxPossibleForUserKey(*end);
@@ -2619,8 +2622,10 @@ Status DBImpl::BackgroundCompaction(bool* made_progress,
                              c->column_family_data());
     assert(c->num_input_files(1) == 0);
     assert(c->level() == 0);
-    assert(c->column_family_data()->ioptions()->compaction_style ==
-           kCompactionStyleFIFO);
+    assert( ( c->column_family_data()->ioptions()->compaction_style ==
+              kCompactionStyleFIFO ) ||
+            ( c->column_family_data()->ioptions()->compaction_style ==
+              kCompactionStyleFIFORaftLog ) );
 
     compaction_job_stats.num_input_files = c->num_input_files(0);
 
@@ -2859,7 +2864,8 @@ Status DBImpl::BackgroundCompaction(bool* made_progress,
       assert(m->cfd->ioptions()->compaction_style !=
                  kCompactionStyleUniversal ||
              m->cfd->ioptions()->num_levels > 1);
-      assert(m->cfd->ioptions()->compaction_style != kCompactionStyleFIFO);
+      assert(m->cfd->ioptions()->compaction_style != kCompactionStyleFIFO ||
+             m->cfd->ioptions()->compaction_style != kCompactionStyleFIFORaftLog);
       m->tmp_storage = *m->manual_end;
       m->begin = &m->tmp_storage;
       m->incomplete = true;

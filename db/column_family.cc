@@ -259,7 +259,7 @@ ColumnFamilyOptions SanitizeOptions(const ImmutableDBOptions& db_options,
     }
   }
 
-  if (result.compaction_style == kCompactionStyleFIFO) {
+  if (result.compaction_style == kCompactionStyleFIFO || result.compaction_style == kCompactionStyleFIFORaftLog) {
     result.num_levels = 1;
     // since we delete level0 files in FIFO compaction when there are too many
     // of them, these options don't really mean anything
@@ -354,7 +354,8 @@ ColumnFamilyOptions SanitizeOptions(const ImmutableDBOptions& db_options,
   const uint64_t kAdjustedTtl = 30 * 24 * 60 * 60;
   if (result.ttl == kDefaultTtl) {
     if (is_block_based_table &&
-        result.compaction_style != kCompactionStyleFIFO) {
+        result.compaction_style != kCompactionStyleFIFO &&
+        result.compaction_style != kCompactionStyleFIFORaftLog) {
       result.ttl = kAdjustedTtl;
     } else {
       result.ttl = 0;
@@ -366,14 +367,14 @@ ColumnFamilyOptions SanitizeOptions(const ImmutableDBOptions& db_options,
   // Turn on periodic compactions and set them to occur once every 30 days if
   // compaction filters are used and periodic_compaction_seconds is set to the
   // default value.
-  if (result.compaction_style != kCompactionStyleFIFO) {
+  if (result.compaction_style != kCompactionStyleFIFO && result.compaction_style != kCompactionStyleFIFORaftLog) {
     if ((result.compaction_filter != nullptr ||
          result.compaction_filter_factory != nullptr) &&
         result.periodic_compaction_seconds == kDefaultPeriodicCompSecs &&
         is_block_based_table) {
       result.periodic_compaction_seconds = kAdjustedPeriodicCompSecs;
     }
-  } else {
+  } else if (result.compaction_style == kCompactionStyleFIFO) {
     // result.compaction_style == kCompactionStyleFIFO
     if (result.ttl == 0) {
       if (is_block_based_table) {
@@ -384,6 +385,15 @@ ColumnFamilyOptions SanitizeOptions(const ImmutableDBOptions& db_options,
       }
     } else if (result.periodic_compaction_seconds != 0) {
       result.ttl = std::min(result.ttl, result.periodic_compaction_seconds);
+    }
+  } else {
+    // result.compaction_style == kCompactionStyleFIFORaftLog
+    if (result.ttl == 0) {
+      if (is_block_based_table) {
+        if (result.periodic_compaction_seconds == kDefaultPeriodicCompSecs) {
+          result.periodic_compaction_seconds = kAdjustedPeriodicCompSecs;
+        }
+      }
     }
   }
 
@@ -525,6 +535,9 @@ ColumnFamilyData::ColumnFamilyData(
       compaction_picker_.reset(
           new UniversalCompactionPicker(ioptions_, &internal_comparator_));
     } else if (ioptions_.compaction_style == kCompactionStyleFIFO) {
+      compaction_picker_.reset(
+          new FIFOCompactionPicker(ioptions_, &internal_comparator_));
+    } else if (ioptions_.compaction_style == kCompactionStyleFIFORaftLog) {
       compaction_picker_.reset(
           new FIFOCompactionPicker(ioptions_, &internal_comparator_));
     } else if (ioptions_.compaction_style == kCompactionStyleNone) {

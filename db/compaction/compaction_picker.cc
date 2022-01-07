@@ -569,6 +569,7 @@ Compaction* CompactionPicker::CompactRange(
     uint64_t max_file_num_to_ignore) {
   // CompactionPickerFIFO has its own implementation of compact range
   assert(ioptions_.compaction_style != kCompactionStyleFIFO);
+  assert(ioptions_.compaction_style != kCompactionStyleFIFORaftLog);
 
   if (input_level == ColumnFamilyData::kCompactAllLevels) {
     assert(ioptions_.compaction_style == kCompactionStyleUniversal);

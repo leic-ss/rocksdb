@@ -6353,6 +6353,8 @@ class CompactionStyleJni {
        return 0x2;
      case rocksdb::CompactionStyle::kCompactionStyleNone:
        return 0x3;
+     case rocksdb::CompactionStyle::kCompactionStyleFIFORaftLog:
+       return 0x4;
      default:
        return 0x7F;  // undefined
    }
@@ -6371,6 +6373,8 @@ class CompactionStyleJni {
        return rocksdb::CompactionStyle::kCompactionStyleFIFO;
      case 0x3:
        return rocksdb::CompactionStyle::kCompactionStyleNone;
+     case 0x4:
+       return rocksdb::CompressionStyle::kCompactionStyleFIFORaftLog;
      default:
        // undefined/default
        return rocksdb::CompactionStyle::kCompactionStyleLevel;

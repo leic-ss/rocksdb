@@ -1449,7 +1449,8 @@ Status DBImpl::Open(const DBOptions& db_options, const std::string& dbname,
 
   if (s.ok()) {
     for (auto cfd : *impl->versions_->GetColumnFamilySet()) {
-      if (cfd->ioptions()->compaction_style == kCompactionStyleFIFO) {
+      if (cfd->ioptions()->compaction_style == kCompactionStyleFIFO ||
+          cfd->ioptions()->compaction_style == kCompactionStyleFIFORaftLog) {
         auto* vstorage = cfd->current()->storage_info();
         for (int i = 1; i < vstorage->num_levels(); ++i) {
           int num_files = vstorage->NumLevelFiles(i);

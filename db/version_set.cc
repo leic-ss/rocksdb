@@ -2396,6 +2396,8 @@ void VersionStorageInfo::ComputeCompactionScore(
               score);
         }
 
+      } else if (compaction_style_ == kCompactionStyleFIFORaftLog) {
+
       } else {
         score = static_cast<double>(num_sorted_runs) /
                 mutable_cf_options.level0_file_num_compaction_trigger;
@@ -2700,6 +2702,7 @@ void VersionStorageInfo::UpdateFilesByCompactionPri(
     CompactionPri compaction_pri) {
   if (compaction_style_ == kCompactionStyleNone ||
       compaction_style_ == kCompactionStyleFIFO ||
+      compaction_style_ == kCompactionStyleFIFORaftLog ||
       compaction_style_ == kCompactionStyleUniversal) {
     // don't need this
     return;

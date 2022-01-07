@@ -4331,7 +4331,7 @@ class Benchmark {
     std::vector<Options> options_list;
     for (auto db : db_list) {
       options_list.push_back(db->GetOptions());
-      if (compaction_style != kCompactionStyleFIFO) {
+      if (compaction_style != kCompactionStyleFIFO && compaction_style != kCompactionStyleFIFORaftLog) {
         db->SetOptions({{"disable_auto_compactions", "1"},
                         {"level0_slowdown_writes_trigger", "400000000"},
                         {"level0_stop_writes_trigger", "400000000"}});
@@ -4458,7 +4458,7 @@ class Benchmark {
                                 : 0) /*level*/);
         }
       }
-    } else if (compaction_style == kCompactionStyleFIFO) {
+    } else if (compaction_style == kCompactionStyleFIFO || compaction_style == kCompactionStyleFIFORaftLog) {
       if (num_levels != 1) {
         return Status::InvalidArgument(
           "num_levels should be 1 for FIFO compaction");
@@ -4510,7 +4510,7 @@ class Benchmark {
       } else if (compaction_style == kCompactionStyleUniversal) {
         assert(meta.levels[0].files.size() + num_levels - 1 ==
                sorted_runs[k].size());
-      } else if (compaction_style == kCompactionStyleFIFO) {
+      } else if (compaction_style == kCompactionStyleFIFO || compaction_style == kCompactionStyleFIFORaftLog) {
         // TODO(gzh): FIFO compaction
         db->GetColumnFamilyMetaData(&meta);
         auto total_size = meta.levels[0].size;
