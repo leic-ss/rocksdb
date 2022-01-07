@@ -178,6 +178,7 @@ ColumnFamilyOptions BuildColumnFamilyOptions(
       mutable_cf_options.level0_stop_writes_trigger;
   cf_opts.max_compaction_bytes = mutable_cf_options.max_compaction_bytes;
   cf_opts.target_file_size_base = mutable_cf_options.target_file_size_base;
+  cf_opts.raft_log_min_key = mutable_cf_options.raft_log_min_key;
   cf_opts.target_file_size_multiplier =
       mutable_cf_options.target_file_size_multiplier;
   cf_opts.max_bytes_for_level_base =
@@ -1965,6 +1966,12 @@ std::unordered_map<std::string, OptionTypeInfo>
          {offset_of(&ColumnFamilyOptions::target_file_size_base),
           OptionType::kUInt64T, OptionVerificationType::kNormal, true,
           offsetof(struct MutableCFOptions, target_file_size_base)}},
+
+        {"raft_log_min_key",
+         {offset_of(&ColumnFamilyOptions::raft_log_min_key),
+          OptionType::kString, OptionVerificationType::kNormal, true,
+          offsetof(struct MutableCFOptions, raft_log_min_key)}},
+
         {"rate_limit_delay_max_milliseconds",
          {0, OptionType::kUInt, OptionVerificationType::kDeprecated, false, 0}},
         {"compression",

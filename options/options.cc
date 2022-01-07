@@ -60,6 +60,7 @@ AdvancedColumnFamilyOptions::AdvancedColumnFamilyOptions(const Options& options)
       level0_slowdown_writes_trigger(options.level0_slowdown_writes_trigger),
       level0_stop_writes_trigger(options.level0_stop_writes_trigger),
       target_file_size_base(options.target_file_size_base),
+      raft_log_min_key(options.raft_log_min_key),
       target_file_size_multiplier(options.target_file_size_multiplier),
       level_compaction_dynamic_level_bytes(
           options.level_compaction_dynamic_level_bytes),

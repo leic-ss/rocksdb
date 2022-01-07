@@ -81,6 +81,8 @@ const char* GetCompactionReasonString(CompactionReason compaction_reason) {
       return "FIFOReduceNumFiles";
     case CompactionReason::kFIFOTtl:
       return "FIFOTtl";
+    case CompactionReason::kFIFORaftLog:
+      return "kFIFORaftLog";
     case CompactionReason::kManualCompaction:
       return "ManualCompaction";
     case CompactionReason::kFilesMarkedForCompaction:

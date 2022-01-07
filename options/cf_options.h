@@ -162,6 +162,7 @@ struct MutableCFOptions {
         paranoid_file_checks(options.paranoid_file_checks),
         report_bg_io_stats(options.report_bg_io_stats),
         compression(options.compression),
+        raft_log_min_key(options.raft_log_min_key),
         sample_for_compression(options.sample_for_compression) {
     RefreshDerivedOptions(options.num_levels, options.compaction_style);
   }
@@ -193,6 +194,7 @@ struct MutableCFOptions {
         max_sequential_skip_in_iterations(0),
         paranoid_file_checks(false),
         report_bg_io_stats(false),
+        raft_log_min_key(""),
         compression(Snappy_Supported() ? kSnappyCompression : kNoCompression),
         sample_for_compression(0) {}
 
@@ -225,6 +227,7 @@ struct MutableCFOptions {
   size_t max_successive_merges;
   size_t inplace_update_num_locks;
   std::shared_ptr<const SliceTransform> prefix_extractor;
+  std::string raft_log_min_key;
 
   // Compaction related options
   bool disable_auto_compactions;

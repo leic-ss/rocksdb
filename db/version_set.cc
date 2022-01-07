@@ -2342,6 +2342,27 @@ uint32_t GetExpiredTtlFilesCount(const ImmutableCFOptions& ioptions,
   }
   return ttl_expired_files_count;
 }
+
+uint32_t GetExpiredRaftLogFilesCount(const ImmutableCFOptions& ioptions,
+                                 const MutableCFOptions& mutable_cf_options,
+                                 const std::vector<FileMetaData*>& files) {
+  uint32_t raft_log_expired_files_count = 0;
+  if (mutable_cf_options.raft_log_key.empty()) return 0;
+
+  const uint64_t current_time = static_cast<uint64_t>(_current_time);
+  for (FileMetaData* f : files) {
+    if (!f->being_compacted) {
+      Slice largest_key = f->largest.user_key();
+      Slice raft_log_min_key(mutable_cf_options.raft_log_min_key.data(), mutable_cf_options.raft_log_min_key.size());
+
+      if (largest_key.compare(raft_log_min_key) < 0) {
+        raft_log_expired_files_count++;
+      }
+    }
+  }
+
+  return raft_log_expired_files_count;
+}
 }  // anonymous namespace
 
 void VersionStorageInfo::ComputeCompactionScore(
@@ -2397,7 +2418,13 @@ void VersionStorageInfo::ComputeCompactionScore(
         }
 
       } else if (compaction_style_ == kCompactionStyleFIFORaftLog) {
-
+          score = 0;
+          if (!mutable_cf_ptions.raft_log_key.empty()) {
+            score = std::max(
+                static_cast<double>(GetExpiredRaftLogFilesCount(
+                    immutable_cf_options, mutable_cf_options, files_[level])),
+                score);
+          }
       } else {
         score = static_cast<double>(num_sorted_runs) /
                 mutable_cf_options.level0_file_num_compaction_trigger;
