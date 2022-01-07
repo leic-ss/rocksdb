@@ -2350,7 +2350,7 @@ uint32_t GetExpiredRaftLogFilesCount(const ImmutableCFOptions& ioptions,
   if (mutable_cf_options.raft_log_min_key == 0) return 0;
 
   std::string buffer("GetExpiredRaftLogFilesCount");
-  buffer.append(" raft_log_min_key[").append(std::to_string(mutable_cf_options.raft_log_min_key));
+  buffer.append(" raft_log_min_key[").append(std::to_string(mutable_cf_options.raft_log_min_key)).append("]");
   for (FileMetaData* f : files) {
     if (!f->being_compacted) {
       Slice largest_key = f->largest.user_key();
