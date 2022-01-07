@@ -2347,9 +2347,8 @@ uint32_t GetExpiredRaftLogFilesCount(const ImmutableCFOptions& ioptions,
                                  const MutableCFOptions& mutable_cf_options,
                                  const std::vector<FileMetaData*>& files) {
   uint32_t raft_log_expired_files_count = 0;
-  if (mutable_cf_options.raft_log_key.empty()) return 0;
+  if (mutable_cf_options.raft_log_min_key.empty()) return 0;
 
-  const uint64_t current_time = static_cast<uint64_t>(_current_time);
   for (FileMetaData* f : files) {
     if (!f->being_compacted) {
       Slice largest_key = f->largest.user_key();
@@ -2419,7 +2418,7 @@ void VersionStorageInfo::ComputeCompactionScore(
 
       } else if (compaction_style_ == kCompactionStyleFIFORaftLog) {
           score = 0;
-          if (!mutable_cf_ptions.raft_log_key.empty()) {
+          if (!mutable_cf_options.raft_log_min_key.empty()) {
             score = std::max(
                 static_cast<double>(GetExpiredRaftLogFilesCount(
                     immutable_cf_options, mutable_cf_options, files_[level])),
