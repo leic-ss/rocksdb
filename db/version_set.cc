@@ -1790,19 +1790,6 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
   FdWithKeyRange* f = fp.GetNextFile();
 
   while (f != nullptr) {
-    if (read_options.read_raft_log) {
-      Slice lkey = ExtractUserKey(f->smallest_key);
-      Slice rkey = ExtractUserKey(f->largest_key);
-
-      if (user_key.compare(lkey) < 0) {
-        f = fp.GetNextFile();
-        continue ;
-      } else if (user_key.compare(rkey) > 0) {
-        f = fp.GetNextFile();
-        continue ;
-      }
-    }
-
     if (*max_covering_tombstone_seq > 0) {
       // The remaining files we look at will only contain covered keys, so we
       // stop here.
