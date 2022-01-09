@@ -1294,6 +1294,8 @@ struct ReadOptions {
   // and the API is subject to change.
   const Slice* timestamp;
 
+  bool read_raft_log;
+
   ReadOptions();
   ReadOptions(bool cksum, bool cache);
 };
