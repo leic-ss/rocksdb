@@ -39,15 +39,9 @@ class FIFOCompactionPickerRaftLog : public CompactionPicker {
       const VersionStorageInfo* vstorage) const override;
 
  private:
-  Compaction* PickTTLCompaction(const std::string& cf_name,
-                                const MutableCFOptions& mutable_cf_options,
-                                VersionStorageInfo* version,
-                                LogBuffer* log_buffer);
-
-  Compaction* PickSizeCompaction(const std::string& cf_name,
-                                 const MutableCFOptions& mutable_cf_options,
-                                 VersionStorageInfo* version,
-                                 LogBuffer* log_buffer);
+  Compaction* PickRaftlogExpiredCompaction(
+    const std::string& cf_name, const MutableCFOptions& mutable_cf_options,
+    VersionStorageInfo* vstorage, LogBuffer* log_buffer);
 };
 }  // namespace rocksdb
 #endif  // !ROCKSDB_LITE

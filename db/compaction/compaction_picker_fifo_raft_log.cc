@@ -37,7 +37,7 @@ bool FIFOCompactionPickerRaftLog::NeedsCompaction(
 Compaction* FIFOCompactionPickerRaftLog::PickRaftlogExpiredCompaction(
     const std::string& cf_name, const MutableCFOptions& mutable_cf_options,
     VersionStorageInfo* vstorage, LogBuffer* log_buffer) {
-  assert(mutable_cf_options.ttl > 0);
+  // assert(mutable_cf_options.ttl > 0);
 
   const int kLevel0 = 0;
   const std::vector<FileMetaData*>& level_files = vstorage->LevelFiles(kLevel0);

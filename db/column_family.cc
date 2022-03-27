@@ -17,6 +17,7 @@
 
 #include "db/compaction/compaction_picker.h"
 #include "db/compaction/compaction_picker_fifo.h"
+#include "db/compaction/compaction_picker_fifo_raft_log.h"
 #include "db/compaction/compaction_picker_level.h"
 #include "db/compaction/compaction_picker_universal.h"
 #include "db/db_impl/db_impl.h"
@@ -539,7 +540,7 @@ ColumnFamilyData::ColumnFamilyData(
           new FIFOCompactionPicker(ioptions_, &internal_comparator_));
     } else if (ioptions_.compaction_style == kCompactionStyleFIFORaftLog) {
       compaction_picker_.reset(
-          new FIFOCompactionPicker(ioptions_, &internal_comparator_));
+          new FIFOCompactionPickerRaftLog(ioptions_, &internal_comparator_));
     } else if (ioptions_.compaction_style == kCompactionStyleNone) {
       compaction_picker_.reset(new NullCompactionPicker(
           ioptions_, &internal_comparator_));
