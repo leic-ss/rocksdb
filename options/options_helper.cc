@@ -1967,10 +1967,10 @@ std::unordered_map<std::string, OptionTypeInfo>
           OptionType::kUInt64T, OptionVerificationType::kNormal, true,
           offsetof(struct MutableCFOptions, target_file_size_base)}},
 
-        {"raft_log_min_key",
-         {offset_of(&ColumnFamilyOptions::raft_log_min_key),
-          OptionType::kUInt64T, OptionVerificationType::kNormal, true,
-          offsetof(struct MutableCFOptions, raft_log_min_key)}},
+        // {"raft_log_min_key",
+        //  {offset_of(&ColumnFamilyOptions::raft_log_min_key),
+        //   OptionType::kUInt64T, OptionVerificationType::kNormal, true,
+        //   offsetof(struct MutableCFOptions, raft_log_min_key)}},
 
         {"rate_limit_delay_max_milliseconds",
          {0, OptionType::kUInt, OptionVerificationType::kDeprecated, false, 0}},
