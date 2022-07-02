@@ -107,6 +107,18 @@ const Comparator* ColumnFamilyHandleImpl::GetComparator() const {
   return cfd()->user_comparator();
 }
 
+void ColumnFamilyHandleImpl::setRaftLogMinIdx(uint64_t idx)
+{
+  MutableCFOptions* opts = (MutableCFOptions*)(cfd()->GetLatestMutableCFOptions());
+  opts->raft_log_min_key = idx;
+}
+
+uint64_t ColumnFamilyHandleImpl::getRaftLogMinIdx(uint64_t idx)
+{
+  MutableCFOptions* opts = (MutableCFOptions*)(cfd()->GetLatestMutableCFOptions());
+  return opts->raft_log_min_key;
+}
+
 void GetIntTblPropCollectorFactory(
     const ImmutableCFOptions& ioptions,
     std::vector<std::unique_ptr<IntTblPropCollectorFactory>>*

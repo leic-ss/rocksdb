@@ -99,6 +99,9 @@ class ColumnFamilyHandle {
   // Returns the comparator of the column family associated with the
   // current handle.
   virtual const Comparator* GetComparator() const = 0;
+
+  virtual void setRaftLogMinIdx(uint64_t idx) = 0;
+  virtual uint64_t getRaftLogMinIdx(uint64_t idx) = 0;
 };
 
 static const int kMajorVersion = __ROCKSDB_MAJOR__;

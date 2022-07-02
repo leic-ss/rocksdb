@@ -170,6 +170,9 @@ class ColumnFamilyHandleImpl : public ColumnFamilyHandle {
   virtual Status GetDescriptor(ColumnFamilyDescriptor* desc) override;
   virtual const Comparator* GetComparator() const override;
 
+  virtual void setRaftLogMinIdx(uint64_t idx);
+  virtual uint64_t getRaftLogMinIdx(uint64_t idx);
+
  private:
   ColumnFamilyData* cfd_;
   DBImpl* db_;
