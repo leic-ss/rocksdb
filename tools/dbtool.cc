@@ -68,6 +68,29 @@ int main(int argc, char** argv)
                                 /*block_cache_tracer=*/nullptr);
     versions.Recover(cf_descs);
 
+    Env* env_ = Env::Default();
+    std::vector<std::string> column_families;
+    versions.ListColumnFamilies(&column_families, db_path, env_);
+    for (auto column_family : column_families) {
+        printf("column_family: %s\n", column_family.c_str());
+    }
+
+    {
+        rocksdb::VersionSet versions2(db_path, &db_options, soptions, tc.get(), &wb, &wc,
+                                /*block_cache_tracer=*/nullptr);
+        std::string manifest_filename;
+        uint64_t manifest_file_number;
+        versions2.GetCurrentManifestPath(db_path, env_, &manifest_filename, &manifest_file_number);
+        printf("manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
+
+        for (auto &cf_desc : cf_descs) {
+            if (cf_desc.name == "default") continue;
+
+            rocksdb::Options options(db_opts, cf_desc.options);
+            versions2.DumpManifest(options, manifest_filename, true);
+        }
+    }
+
     int level;
     FileMetaData* metadata;
     rocksdb::ColumnFamilyData* cfd;
@@ -75,7 +98,6 @@ int main(int argc, char** argv)
     Status status;
     JobContext job_context(1, true);
 
-    Env* env_ = Env::Default();
     {
         InstrumentedMutex mutex_;
         InstrumentedMutexLock l(&mutex_);
@@ -89,7 +111,7 @@ int main(int argc, char** argv)
         for (int i = level + 1; i < cfd->NumberLevels(); i++) {
             if (vstoreage->NumLevelFiles(i) != 0) {
                 printf("DeleteFile %s FAILED. File not in last level\n", fname.c_str());
-                return -1;
+                // return -1;
             }
         }
 
@@ -98,7 +120,7 @@ int main(int argc, char** argv)
             printf("DeleteFile %s failed ---"
                    " target file in level 0 must be the oldest.",
                    fname.c_str());
-            return -1;
+            // return -1;
         }
 
         Directories directories_;
@@ -112,6 +134,22 @@ int main(int argc, char** argv)
                                         &edit, &mutex_, directories_.GetDbDir());
         if (status.ok()) {
             printf("log apply resulst: %s", status.ToString().c_str());
+        }
+    }
+
+    {
+        rocksdb::VersionSet versions2(db_path, &db_options, soptions, tc.get(), &wb, &wc,
+                                /*block_cache_tracer=*/nullptr);
+        std::string manifest_filename;
+        uint64_t manifest_file_number;
+        versions2.GetCurrentManifestPath(db_path, env_, &manifest_filename, &manifest_file_number);
+        printf("manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
+
+        for (auto &cf_desc : cf_descs) {
+            if (cf_desc.name == "default") continue;
+
+            rocksdb::Options options(db_opts, cf_desc.options);
+            versions2.DumpManifest(options, manifest_filename, true);
         }
     }
 
