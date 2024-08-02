@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     std::vector<std::string> column_families;
     versions.ListColumnFamilies(&column_families, db_path, env_);
     for (auto column_family : column_families) {
-        printf("column_family: %s\n", column_family.c_str());
+        printf("111 column_family: %s\n", column_family.c_str());
     }
 
     {
@@ -81,14 +81,14 @@ int main(int argc, char** argv)
         std::string manifest_filename;
         uint64_t manifest_file_number;
         versions2.GetCurrentManifestPath(db_path, env_, &manifest_filename, &manifest_file_number);
-        printf("manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
+        printf("111 manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
 
         for (auto &cf_desc : cf_descs) {
-            if (cf_desc.name == "default") continue;
-
-            rocksdb::Options options(db_opts, cf_desc.options);
-            versions2.DumpManifest(options, manifest_filename, true);
+            printf("111 cf_descs: %s\n", cf_desc.name.c_str());
         }
+
+        rocksdb::Options options(db_opts, ColumnFamilyOptions());
+        versions2.DumpManifest(options, manifest_filename, true);
     }
 
     int level;
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
         if (level == 0 &&
             vstoreage->LevelFiles(0).back()->fd.GetNumber() != number) {
             printf("DeleteFile %s failed ---"
-                   " target file in level 0 must be the oldest.",
+                   " target file in level 0 must be the oldest.\n",
                    fname.c_str());
             // return -1;
         }
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
         status = versions.LogAndApply(cfd, *cfd->GetLatestMutableCFOptions(),
                                         &edit, &mutex_, directories_.GetDbDir());
         if (status.ok()) {
-            printf("log apply resulst: %s", status.ToString().c_str());
+            printf("log apply resulst: %s\n", status.ToString().c_str());
         }
     }
 
@@ -143,14 +143,14 @@ int main(int argc, char** argv)
         std::string manifest_filename;
         uint64_t manifest_file_number;
         versions2.GetCurrentManifestPath(db_path, env_, &manifest_filename, &manifest_file_number);
-        printf("manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
+        printf("222 manifest_filename: %s manifest_file_number: %lu\n", manifest_filename.c_str(), manifest_file_number);
 
         for (auto &cf_desc : cf_descs) {
-            if (cf_desc.name == "default") continue;
-
-            rocksdb::Options options(db_opts, cf_desc.options);
-            versions2.DumpManifest(options, manifest_filename, true);
+            printf("222 cf_descs: %s\n", cf_desc.name.c_str());
         }
+
+        rocksdb::Options options(db_opts, ColumnFamilyOptions());
+        versions2.DumpManifest(options, manifest_filename, true);
     }
 
     return 0;

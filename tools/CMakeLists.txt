@@ -7,7 +7,8 @@ set(TOOLS
   db_repl_stress.cc
   dump/rocksdb_dump.cc
   dump/rocksdb_undump.cc
-  dbtool.cc)
+  dbtool.cc
+  dbtool2.cc)
 foreach(src ${TOOLS})
   get_filename_component(exename ${src} NAME_WE)
   add_executable(${exename}${ARTIFACT_SUFFIX}
